@@ -1,16 +1,37 @@
 import express from 'express';
 import path from 'node:path';
+import fs from 'node:fs';
+import crypto from 'node:crypto';
 import { fileURLToPath } from 'node:url';
 
 const __dirname=path.dirname(fileURLToPath(import.meta.url));
 const app=express();
 const port=Number(process.env.PORT||10000);
+const publicDir=path.join(__dirname,'public');
+const indexPath=path.join(publicDir,'index.html');
+
+function productionIndex(){
+  const raw=fs.readFileSync(indexPath,'utf8');
+  const withCss=raw.includes('/split-production.css')?raw:raw.replace('</head>','<link rel="stylesheet" href="/split-production.css"></head>');
+  return withCss.includes('/split-production.js')?withCss:withCss.replace('</body>','<script defer src="/split-production.js"></script></body>');
+}
+let indexHtml=productionIndex();
 
 app.disable('x-powered-by');
 app.use((req,res,next)=>{
+  const requestId=crypto.randomUUID();
+  req.requestId=requestId;
+  res.setHeader('X-Request-Id',requestId);
   res.setHeader('X-Content-Type-Options','nosniff');
   res.setHeader('Referrer-Policy','strict-origin-when-cross-origin');
+  res.setHeader('Permissions-Policy','camera=(), microphone=(), geolocation=()');
+  res.setHeader('X-Frame-Options','DENY');
+  res.setHeader('X-Permitted-Cross-Domain-Policies','none');
+  res.setHeader('Origin-Agent-Cluster','?1');
+  const proto=String(req.headers['x-forwarded-proto']||'').toLowerCase();
+  if(proto==='https')res.setHeader('Strict-Transport-Security','max-age=31536000; includeSubDomains');
   if(req.path.startsWith('/api/'))res.setHeader('Cache-Control','no-store');
+  res.on('finish',()=>{if(res.statusCode>=500)console.error('SPLIT request failed',{requestId,method:req.method,path:req.path,status:res.statusCode})});
   next();
 });
 
@@ -36,19 +57,27 @@ app.all('/api/:name',async(req,res)=>{
     const mod=await import(`./api/${name}.js`);
     await mod.default(req,res);
   }catch(error){
-    console.error('SPLIT API error:',error);
-    if(!res.headersSent)res.status(500).json({success:false,error:'Internal server error.'});
+    console.error('SPLIT API error:',{requestId:req.requestId,error:error?.message||error});
+    if(!res.headersSent)res.status(500).json({success:false,error:'SPLIT could not complete that request. Please try again.'});
   }
 });
 
-app.use(express.static(path.join(__dirname,'public'),{
+app.get(['/', '/index.html'],(req,res)=>{
+  // Refresh during development/redeploys without ever exposing server secrets.
+  if(process.env.NODE_ENV!=='production')indexHtml=productionIndex();
+  res.setHeader('Cache-Control','no-cache');
+  res.type('html').send(indexHtml);
+});
+
+app.use(express.static(publicDir,{
   extensions:['html'],
-  index:'index.html',
+  index:false,
   maxAge:'1h'
 }));
 
 app.get('*',(req,res)=>{
-  res.sendFile(path.join(__dirname,'public','index.html'));
+  res.setHeader('Cache-Control','no-cache');
+  res.type('html').send(indexHtml);
 });
 
 app.listen(port,'0.0.0.0',()=>{
