@@ -9,7 +9,7 @@ for(const file of [...fs.readdirSync('api').map(f=>'api/'+f),...fs.readdirSync('
 const html=fs.readFileSync('public/index.html','utf8');parse(html);
 requireCheck(!/<style\b/.test(html),'Inline homepage stylesheet.');requireCheck(!/data:image\//.test(html),'Embedded homepage image.');
 for(const m of html.matchAll(/<script\b([^>]*)>([\s\S]*?)<\/script>/g))requireCheck(/src=/.test(m[1])||/application\/ld\+json/.test(m[1]),'Inline homepage behavior.');
-for(const m of html.matchAll(/(?:src|href)="(\/(?:assets\/|split-production\.js)[^"]*)"/g))requireCheck(fs.existsSync('public'+m[1]),'Missing asset: '+m[1]);
+for(const m of html.matchAll(/(?:src|href)="(\/(?:assets\/|split-production\.js)[^"]*)"/g))requireCheck(fs.existsSync('public'+m[1].split('?')[0]),'Missing asset: '+m[1]);
 const policy=fs.readFileSync('api/_launch-policy.js','utf8');for(const amount of ['3500','2000','1000'])requireCheck(policy.includes(amount),'Fee policy changed.');
 requireCheck(policy.includes('5'),'Minimum first buy changed.');
 if(failures.length){console.error(failures.join('\n'));process.exit(1)}

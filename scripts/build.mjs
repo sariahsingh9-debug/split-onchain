@@ -1,6 +1,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import {fileURLToPath} from 'node:url';
+import {createHash} from 'node:crypto';
 import postcss from 'postcss';
 import cssnano from 'cssnano';
 const root=path.dirname(path.dirname(fileURLToPath(import.meta.url)));
@@ -12,5 +13,10 @@ const manifest=JSON.parse(fs.readFileSync(path.join(root,'frontend/styles/manife
 const css=manifest.map(name=>fs.readFileSync(path.join(root,'frontend/styles',name),'utf8')).join('\n');
 const output=await postcss([cssnano({preset:['default',{normalizeUrl:false}]})]).process(css,{from:undefined,map:false});
 fs.writeFileSync(path.join(root,'public/assets/site.css'),output.css);
+html=html.replace(/(src|href)="(\/(?:assets\/[^"?]+\.(?:js|css)|split-production\.js))"/g,(_,attribute,url)=>{
+  const content=fs.readFileSync(path.join(root,'public',url.slice(1)));
+  const version=createHash('sha256').update(content).digest('hex').slice(0,12);
+  return `${attribute}="${url}?v=${version}"`;
+});
 fs.writeFileSync(path.join(root,'public/index.html'),html);
 console.log('SPLIT frontend built from five page components and shared assets.');
