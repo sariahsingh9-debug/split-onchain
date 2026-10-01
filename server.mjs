@@ -12,7 +12,7 @@ const indexPath=path.join(publicDir,'index.html');
 
 function productionIndex(){
   const raw=fs.readFileSync(indexPath,'utf8');
-  const favicon='<link rel="icon" type="image/png" sizes="64x64" href="/favicon.png?v=split-v75"><link rel="shortcut icon" href="/favicon.png?v=split-v75">';
+  const favicon='<link rel="icon" href="/favicon.ico?v=split-v76" sizes="any"><link rel="icon" type="image/png" sizes="64x64" href="/favicon.png?v=split-v76"><link rel="shortcut icon" href="/favicon.ico?v=split-v76">';
   const withFavicon=raw.includes('/favicon.png')?raw:raw.replace('</head>',favicon+'</head>');
   const withCss=withFavicon.includes('/split-production.css')?withFavicon:withFavicon.replace('</head>','<link rel="stylesheet" href="/split-production.css"></head>');
   return withCss.includes('/split-production.js')?withCss:withCss.replace('</body>','<script defer src="/split-production.js"></script></body>');
