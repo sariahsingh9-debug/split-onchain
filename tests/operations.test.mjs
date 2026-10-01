@@ -20,6 +20,9 @@ globalThis.fetch=async(url,options)=>{
 after(async()=>{globalThis.fetch=realFetch;await storage.closeStorage();await redis.close()});
 function response(){return {code:200,body:null,setHeader(){return this},status(code){this.code=code;return this},json(body){this.body=body;return this}}}
 const request={method:'POST',headers:{authorization:'Bearer test-credential'},requestId:'request-test'};
+test('missing launch authentication returns 401 rather than producing a server error alert',async()=>{
+ const {default:launch}=await import('../api/create-launch.js');const res=response();await launch({method:'POST',headers:{},body:'{}'},res);assert.equal(res.code,401);
+});
 test('cron authentication rejects absent and incorrect credentials',async()=>{
  for(const headers of [{},{authorization:'Bearer wrong'}]){const res=response();await reconcile({...request,headers},res);assert.equal(res.code,401)}
 });

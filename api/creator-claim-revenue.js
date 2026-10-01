@@ -1,5 +1,6 @@
 import { creatorSession, listCreatorRecords } from './_creator-utils.js';
 import { claimAndDistribute } from './_creator-revenue.js';
+import {reportError} from './_operations.js';
 
 function bodyOf(req){if(typeof req.body==='string')return JSON.parse(req.body||'{}');return req.body||{}}
 export default async function handler(req,res){
@@ -16,6 +17,8 @@ export default async function handler(req,res){
     return res.status(200).json(await claimAndDistribute(launch.routingToken));
   }catch(error){
     const msg=error?.message||'Creator revenue could not be distributed.';
-    return res.status(/login|required|expired/i.test(msg)?401:400).json({success:false,error:msg});
+    const auth=/login|expired|SPLIT link/i.test(msg);
+    if(!auth)void reportError({event:'creator_revenue_claim_failed',route:'/api/creator-claim-revenue',status:500,requestId:req.requestId});
+    return res.status(auth?401:500).json({success:false,error:msg});
   }
 }

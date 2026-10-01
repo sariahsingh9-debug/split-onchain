@@ -1,3 +1,4 @@
+import {reportError} from './_operations.js';
 import { put } from './_blob-store.js';
 import { verifyRoutingToken, validSolanaAddress } from './_routing-utils.js';
 import { writeCreatorLaunchIndex, creatorSession } from './_creator-utils.js';
@@ -83,7 +84,8 @@ export default async function handler(req,res){
     );
     const out=await register.json().catch(()=>({}));
     if(!register.ok||!out?.success){
-      return res.status(register.status||502).json({
+      void reportError({event:'launch_registration_provider_failed',route:'/api/register-launch',status:register.ok?502:register.status,requestId:req.requestId});
+      return res.status(register.ok?502:register.status).json({
         success:false,
         error:out?.error?.message||out?.error||'Metaplex launch registration failed.'
       });

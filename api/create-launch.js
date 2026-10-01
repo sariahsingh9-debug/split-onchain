@@ -6,6 +6,7 @@ import { deriveFeeWallet, signRoutingPayload, validSolanaAddress } from './_rout
 import { creatorSession } from './_creator-utils.js';
 import { FIXED_ROUTING } from './_launch-policy.js';
 import { quoteInitialBuyUsd } from './_sol-price.js';
+import {reportError} from './_operations.js';
 
 function bodyOf(req){if(typeof req.body==='string')return JSON.parse(req.body||'{}');return req.body||{}}
 function clean(v,max){return String(v??'').trim().slice(0,max)}
@@ -72,7 +73,10 @@ export default async function handler(req,res){
     const payload=buildCreateLaunchPayload(input);
     const metaplex=await fetchWithRetry('https://api.metaplex.com/v1/launches/create',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify(payload)});
     const out=await metaplex.json().catch(()=>({}));
-    if(!metaplex.ok||!out?.success)return res.status(metaplex.ok?502:metaplex.status).json({success:false,error:out?.error?.message||out?.error||'Metaplex could not build the launch.'});
+    if(!metaplex.ok||!out?.success){
+      void reportError({event:'launch_provider_failed',route:'/api/create-launch',status:metaplex.ok?502:metaplex.status,requestId:req.requestId});
+      return res.status(metaplex.ok?502:metaplex.status).json({success:false,error:out?.error?.message||out?.error||'Metaplex could not build the launch.'});
+    }
 
     const routingPayload={
       v:2,routingId,network,feeWallet:feeWallet.publicKey.toBase58(),creatorWallet:wallet,
@@ -88,6 +92,7 @@ export default async function handler(req,res){
   }catch(error){
     console.error(error);
     const message=String(error?.message||'Launch preparation failed.');
+    if(/creator login|SPLIT link|expired/i.test(message))return res.status(401).json({success:false,error:'Creator login is required.'});
     const validation=/must be|invalid|ticker|token image|banner|website|twitter|supply|percentage|recipient|network/i.test(message);
     const unavailable=/temporarily|unavailable|fetch|timeout/i.test(message);
     return res.status(validation?400:(unavailable?503:500)).json({success:false,error:message});
