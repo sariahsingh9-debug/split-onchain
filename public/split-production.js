@@ -8,6 +8,22 @@ document.title='SPLIT — Group payments + token launches';
 let meta=qs('meta[name="description"]');if(!meta){meta=document.createElement('meta');meta.name='description';document.head.appendChild(meta)}meta.content='Create group payment requests, track participant payments, and launch Solana tokens through SPLIT.';
 qsa('a[target="_blank"]').forEach(a=>{const rel=new Set(String(a.rel||'').split(/\s+/).filter(Boolean));rel.add('noopener');rel.add('noreferrer');a.rel=Array.from(rel).join(' ')});
 
+/* The SPLIT brand/logo is always a Home control, including dynamically rendered navs. */
+function wireHomeBrand(root=document){
+  const candidates=qsa('nav .brand,header .brand,nav [class*="logo"],header [class*="logo"],nav img[src*="split-logo"],header img[src*="split-logo"],nav img[src*="split-icon"],header img[src*="split-icon"]',root);
+  candidates.forEach(el=>{
+    const existingLink=el.closest('a');
+    if(existingLink){existingLink.href='/';existingLink.setAttribute('aria-label','SPLIT home');return}
+    if(el.dataset.spxHome==='1')return;
+    el.dataset.spxHome='1';el.setAttribute('role','link');el.setAttribute('tabindex','0');el.setAttribute('aria-label','SPLIT home');
+    el.style.cursor='pointer';
+    const home=()=>{window.location.href='/'};
+    el.addEventListener('click',home);
+    el.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();home()}});
+  });
+}
+wireHomeBrand();
+
 const toastWrap=document.createElement('div');toastWrap.className='spx-toast-wrap';document.body.appendChild(toastWrap);
 function toast(title,detail='',ms=5000){const el=document.createElement('div');el.className='spx-toast';el.innerHTML='<div></div><small></small>';el.firstChild.textContent=title;el.lastChild.textContent=detail;toastWrap.appendChild(el);live.textContent=[title,detail].filter(Boolean).join('. ');setTimeout(()=>el.remove(),ms)}
 window.addEventListener('offline',()=>toast('You are offline','Wallet and payment actions need an internet connection.',7000));
@@ -28,7 +44,7 @@ function sanitizeNode(root){
   qsa('[class*="error"],[class*="alert"],[data-error]',root.nodeType===1?root:document).forEach(el=>{if(/error|failed|unavailable|invalid|try again/i.test(el.textContent||'')){el.setAttribute('role','alert');el.setAttribute('aria-live','polite')}});
 }
 sanitizeNode(document.body);
-new MutationObserver(mutations=>{for(const m of mutations){m.addedNodes.forEach(n=>{if(n.nodeType===1||n.nodeType===3)sanitizeNode(n.nodeType===3?n.parentElement:n)})}}).observe(document.body,{subtree:true,childList:true,characterData:false});
+new MutationObserver(mutations=>{for(const m of mutations){m.addedNodes.forEach(n=>{if(n.nodeType===1||n.nodeType===3){const root=n.nodeType===3?n.parentElement:n;sanitizeNode(root);if(root?.querySelectorAll)wireHomeBrand(root)}})}}).observe(document.body,{subtree:true,childList:true,characterData:false});
 
 function findHeading(words){const terms=words.map(x=>x.toLowerCase());return qsa('h1,h2,h3,h4,[role="heading"]').find(el=>{const t=(el.textContent||'').toLowerCase();return terms.some(w=>t.includes(w))})}
 function go(words){const h=findHeading(words);const target=h?.closest('section,article')||h;if(target){target.scrollIntoView({behavior:'smooth',block:'start'});closeGuide();return true}return false}
