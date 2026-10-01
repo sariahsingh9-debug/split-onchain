@@ -1,6 +1,8 @@
 # SPLIT production operations
 
-The Render web service serves the frontend and API. The independent `split-reconciliation` cron job runs `npm run render:reconcile` every two minutes, calling authenticated production endpoints. It needs only `APP_BASE_URL` and `CRON_SECRET`; wallet secrets remain on the web service.
+The Render web service serves the frontend and API, and starts an automatic recovery/monitoring loop at startup and every two minutes. A separate GitHub Actions workflow checks production every five minutes, waking the free Render instance if necessary, and verifies the real completed-run heartbeat. It carries no secrets. GitHub scheduled runs can be delayed; this is a fallback for an account without Render billing, not a strict timing guarantee.
+
+Native Render cron creation was rejected because the account has no payment method. After enabling billing, create `split-reconciliation` on the same repository/branch, with schedule `*/2 * * * *`, build command `node --check scripts/reconcile-render.mjs`, and start command `node scripts/reconcile-render.mjs`. It needs only `APP_BASE_URL` and `CRON_SECRET`; wallet secrets remain on the web service. The shared lease prevents overlap with the built-in recovery loop.
 
 Reconciliation saves a completed-run heartbeat and scan continuation in Redis. Work resumes after a process restart, overlapping invocations return 409, and an RPC outage retains pending payments. Submitted participant records and their recovery entries commit in one Redis transaction. Health reports reconciliation as healthy only after a successful run within six minutes. Existing v1 payment record readers remain for compatibility with previously created links.
 
@@ -8,7 +10,7 @@ The web service sends operational alerts through Resend to `SPLIT_ALERT_EMAIL`, 
 
 No verified sending domain was present on the connected Resend account. The initial alert sender uses `onboarding@resend.dev`, restricted to the account owner's email. Switch to a verified sender before expanding recipients or enabling participant invitation email.
 
-The cron process checks core health after reconciliation and exits nonzero on failure or timeout. Render's cron failure notifications provide an independent signal if the web process is unavailable. Confirm the owner's Render notification preferences receive failed-job notifications.
+The external workflow fails if the web service cannot be reached or feature/recovery checks fail. GitHub Actions failure notifications provide an independent signal if the web process is unavailable. Confirm the owner's GitHub notification preferences receive failed-workflow notifications. A future native Render cron also exits nonzero on failure or timeout.
 
 `POST /api/operations-monitor` accepts the cron credential. An empty body checks health; `{"test":true}` sends a monitoring test email; `{"statusOnly":true}` reads recent operational status. Never place the cron credential in a browser bundle, URL, repository, or screenshot.
 

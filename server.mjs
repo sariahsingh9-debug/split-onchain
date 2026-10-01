@@ -4,6 +4,7 @@ import fs from 'node:fs';
 import crypto from 'node:crypto';
 import { fileURLToPath } from 'node:url';
 import {reportError} from './api/_operations.js';
+import {startRecoveryScheduler} from './api/_scheduler.js';
 
 const __dirname=path.dirname(fileURLToPath(import.meta.url));
 const app=express();
@@ -92,6 +93,7 @@ app.get('*',(req,res)=>{
 const server=app.listen(port,'0.0.0.0',()=>{
   console.log(`SPLIT listening on port ${port}`);
 });
+const stopRecovery=startRecoveryScheduler();
 process.on('unhandledRejection',()=>{void reportError({event:'unhandled_rejection',status:500})});
 process.on('uncaughtException',async()=>{await reportError({event:'uncaught_exception',status:500});process.exit(1)});
-process.on('SIGTERM',()=>server.close(()=>process.exit(0)));
+process.on('SIGTERM',()=>{stopRecovery();server.close(()=>process.exit(0))});
