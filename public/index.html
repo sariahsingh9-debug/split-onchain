@@ -555,14 +555,18 @@ section{padding:120px 6vw;max-width:1450px;margin:auto}.sectionHead{display:flex
 
 
 <style>
-/* v39 — bring USDC much closer while keeping it fixed */
+/* v39 — keep USDC close without touching the animated amount */
 .splitPreview .splitTotalDisplay{
-  grid-template-columns:6.55ch auto;
-  column-gap:1px;
+  grid-template-columns:6.9ch auto;
+  column-gap:5px;
 }
 .splitPreview .splitTotalDisplay .splitCounter{
-  width:6.55ch;
-  min-width:6.55ch;
+  width:6.9ch;
+  min-width:6.9ch;
+}
+/* Never show the duplicate header currency label. */
+.splitPreviewTop > .kicker{
+  display:none !important;
 }
 </style>
 
