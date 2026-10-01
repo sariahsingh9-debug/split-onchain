@@ -1,0 +1,81 @@
+SPLIT v71 — NETLIFY DEPLOYMENT
+
+WHAT CHANGED
+- Creator-revenue routing is now immutable: Creator 35% / Treasury 20% / Reserve 35% / SPLIT Protocol 10%.
+- Creator 35% is forced to the connected launch wallet by the server.
+- Every token launch requires at least a $5 USDC-equivalent first buy into the bonding curve.
+- Metaplex Genesis first buys settle in SOL, so SPLIT quotes the current SOL/USD rate and converts the selected amount to SOL.
+- Launch media/create/register endpoints now require a signed creator-wallet session.
+- Permanent Irys uploads have a per-wallet quota to reduce abuse of the server-funded uploader.
+- The backend is now a real Netlify Functions backend.
+- All existing /api/* frontend calls are mapped to Netlify Functions.
+- Vercel Blob was replaced with site-wide Netlify Blobs storage.
+- Vercel waitUntil was replaced by Netlify context.waitUntil.
+- Daily payment reconciliation is a Netlify Scheduled Function.
+- Token media uploads, Metaplex Create Launch, wallet signing/confirmation,
+  Register Launch, token-directory persistence, creator dashboard and payment APIs
+  are included.
+- The Launchpad no longer tells users to configure Vercel.
+- Image upload limit is aligned to 3 MB so it stays inside Netlify's function
+  request limit after base64 encoding.
+
+HOW TO DEPLOY
+1. Upload the ENTIRE SPLIT-Netlify-Deploy-v71.zip project to Netlify while logged in,
+   or connect the project to Git. Netlify must run the build so it can install npm
+   dependencies and deploy the functions.
+2. In Netlify, open Project configuration -> Environment variables.
+3. Add the launch variables shown in .env.example. Do not paste private keys into
+   public HTML, GitHub issues, chat screenshots, or client-side JavaScript.
+4. Redeploy after saving environment variables.
+5. Open https://YOUR-SITE/api/health and confirm launchReady is true.
+6. Test a complete launch on solana-devnet with a fresh test wallet.
+7. Only after the devnet flow succeeds, set SOLANA_NETWORK=solana-mainnet and use a
+   production RPC and properly funded operational wallets.
+
+MINIMUM VARIABLES FOR THE TOKEN LAUNCHPAD
+- SOLANA_NETWORK
+- SOLANA_RPC_URL
+- IRYS_SOLANA_PRIVATE_KEY
+- SPLIT_ROUTER_MASTER_SECRET
+- SPLIT_ROUTER_PAYER_SECRET_KEY
+- SPLIT_PROTOCOL_TREASURY
+- SPLIT_REVENUE_RESERVE_TREASURY
+- SPLIT_INVITE_SECRET
+
+NETLIFY BLOBS
+No separate Vercel Blob connection is needed. Netlify automatically supplies the
+Blobs context to deployed Netlify Functions, and SPLIT stores launch-directory,
+creator-index, payment and email state in the site-wide "split-data" store.
+
+IMPORTANT
+A launch cannot be guaranteed to succeed because users can reject wallet signatures
+and Solana RPC, Irys or Metaplex can fail. SPLIT now has the correct Netlify runtime
+wiring and only marks the launch registered after the required transactions confirm.
+
+
+V72 LAUNCH FLOW
+1. User connects a Solana wallet.
+2. User enters at least $5 USDC-equivalent for the initial buy.
+3. SPLIT asks for a free wallet message signature to authorize launchpad backend access.
+4. SPLIT checks the wallet has enough SOL for the first buy.
+5. Token media is uploaded permanently to Irys.
+6. Metaplex builds a bonding-curve launch with creatorFeeWallet + firstBuyAmount.
+7. The user's wallet approves the launch transactions. The first buy goes into the token curve.
+8. SPLIT verifies confirmation and registers the launch.
+9. Creator fees accrue to the SPLIT routing wallet. Clicking Claim fees (or using Creator Dashboard)
+   claims the Metaplex creator-fee pool and distributes it 35% / 20% / 35% / 10%.
+
+IMPORTANT
+- "USDC-equivalent" is a USD reference amount. Metaplex Genesis currently settles its first-buy
+  mechanism in SOL, not arbitrary wallet tokens. The wallet must therefore hold enough SOL for
+  the converted first buy plus normal network/launch costs.
+- The 10% SPLIT Protocol share is 10% of the creator-revenue pool, not 10% of every trade.
+
+V72 NOTE: SPLIT_INVITE_SECRET is required by the launchpad too because permanent uploads and launch creation are protected by wallet-authenticated server sessions.
+
+V73 MOBILE WALLET NOTE
+- Phantom mobile does not connect to dApps from ordinary Safari/Chrome. SPLIT now opens the site
+  inside Phantom's wallet browser through its mobile wallet button.
+- Solflare and Backpack receive equivalent wallet-browser links.
+- If an in-app browser blocks the wallet universal link, users can copy the SPLIT URL from the
+  chooser and open it in the wallet app's built-in browser.

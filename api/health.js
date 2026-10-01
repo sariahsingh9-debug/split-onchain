@@ -1,0 +1,47 @@
+import { Connection } from '@solana/web3.js';
+import { list } from './_blob-store.js';
+
+function senderDomain(value){
+  const raw=String(value||'').trim();
+  const match=raw.match(/<([^>]+)>/);const email=(match?.[1]||raw).trim();
+  return email.includes('@')?email.split('@').pop().toLowerCase():'';
+}
+async function emailHealth(){
+  const configured=Boolean(process.env.RESEND_API_KEY&&process.env.SPLIT_EMAIL_FROM&&process.env.SPLIT_INVITE_SECRET);
+  if(!configured)return {configured:false,domainVerified:false,webhook:Boolean(process.env.RESEND_WEBHOOK_SECRET)};
+  const wanted=senderDomain(process.env.SPLIT_EMAIL_FROM);
+  try{
+    const response=await fetch('https://api.resend.com/domains?limit=100',{
+      headers:{authorization:`Bearer ${process.env.RESEND_API_KEY}`}
+    });
+    const body=await response.json().catch(()=>({}));
+    const domains=Array.isArray(body?.data)?body.data:Array.isArray(body)?body:[];
+    const domain=domains.find(x=>String(x?.name||'').toLowerCase()===wanted);
+    return {configured:true,domainVerified:domain?.status==='verified',webhook:Boolean(process.env.RESEND_WEBHOOK_SECRET)};
+  }catch{return {configured:true,domainVerified:false,webhook:Boolean(process.env.RESEND_WEBHOOK_SECRET)}}
+}
+export default async function handler(req,res){
+  res.setHeader('Cache-Control','no-store');
+  if(req.method!=='GET')return res.status(405).json({ok:false,error:'Method not allowed.'});
+  const network=process.env.SOLANA_NETWORK||'solana-devnet';
+  const launchRpc=process.env.SOLANA_RPC_URL||(network==='solana-mainnet'?'https://api.mainnet-beta.solana.com':'https://api.devnet.solana.com');
+  const paymentRpc=process.env.PAYMENT_SOLANA_RPC_URL||'https://api.mainnet-beta.solana.com';
+  const email=await emailHealth();
+  const services={
+    launchSolana:false,paymentSolana:false,storage:false,
+    email:email.configured&&email.domainVerified&&email.webhook,
+    emailConfigured:email.configured,emailDomainVerified:email.domainVerified,emailWebhook:email.webhook,
+    media:Boolean(process.env.IRYS_SOLANA_PRIVATE_KEY),
+    launchAuth:Boolean(process.env.SPLIT_INVITE_SECRET),
+    router:Boolean(process.env.SPLIT_ROUTER_MASTER_SECRET&&process.env.SPLIT_ROUTER_PAYER_SECRET_KEY&&process.env.SPLIT_PROTOCOL_TREASURY&&(process.env.SPLIT_REVENUE_RESERVE_TREASURY||process.env.SPLIT_LIQUIDITY_TREASURY)),
+    backgroundReconcile:Boolean(process.env.CRON_SECRET)
+  };
+  try{await new Connection(launchRpc,'confirmed').getLatestBlockhash('confirmed');services.launchSolana=true}catch{}
+  try{await new Connection(paymentRpc,'confirmed').getLatestBlockhash('confirmed');services.paymentSolana=true}catch{}
+  try{await list({prefix:'split-health/',limit:1});services.storage=true}catch{}
+  const launchReady=services.launchSolana&&services.storage&&services.media&&services.router&&services.launchAuth;
+  const splitReady=services.paymentSolana&&services.storage&&services.email;
+  return res.status(launchReady&&splitReady?200:503).json({
+    ok:launchReady&&splitReady,network,launchReady,splitReady,storageReady:services.storage,services
+  });
+}
