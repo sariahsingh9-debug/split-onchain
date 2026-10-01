@@ -20,6 +20,9 @@ export default async function handler(req,res){
   if(req.method!=='POST')return res.status(405).json({success:false,error:'Method not allowed.'});
   try{
     const {adminToken,participantId}=bodyOf(req);
+    if(!process.env.RESEND_API_KEY||!process.env.SPLIT_EMAIL_FROM){
+      return res.status(503).json({success:false,error:'Email invitations are not enabled yet. Copy and share the participant payment link instead.'});
+    }
     const admin=verifyPayload(adminToken,'admin');
     const meta=await readSplitMeta(admin.splitId);
     if(!meta)throw new Error('SPLIT record was not found.');
@@ -63,8 +66,11 @@ export default async function handler(req,res){
     });
   }catch(error){
     console.error(error);
-    const message=error?.message||'Could not resend invitation.';
-    const status=/already paid/i.test(message)?409:400;
-    return res.status(status).json({success:false,error:message});
+    const raw=String(error?.message||'');
+    const safe=/not configured|api key|sender|domain/i.test(raw)
+      ?'Email invitations are temporarily unavailable. Copy and share the participant payment link instead.'
+      :(raw||'Could not resend invitation.');
+    const status=/already paid/i.test(raw)?409:/unavailable/i.test(safe)?503:400;
+    return res.status(status).json({success:false,error:safe});
   }
 }

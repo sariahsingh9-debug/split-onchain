@@ -40,8 +40,9 @@ export default async function handler(req,res){
   try{await new Connection(paymentRpc,'confirmed').getLatestBlockhash('confirmed');services.paymentSolana=true}catch{}
   try{await list({prefix:'split-health/',limit:1});services.storage=true}catch{}
   const launchReady=services.launchSolana&&services.storage&&services.media&&services.router&&services.launchAuth;
-  const splitReady=services.paymentSolana&&services.storage&&services.email;
-  return res.status(launchReady&&splitReady?200:503).json({
-    ok:launchReady&&splitReady,network,launchReady,splitReady,storageReady:services.storage,services
+  const splitReady=services.paymentSolana&&services.storage;
+  const coreReady=launchReady&&splitReady;
+  return res.status(coreReady?200:503).json({
+    ok:coreReady,coreReady,network,launchReady,splitReady,emailReady:services.email,emailOptional:true,storageReady:services.storage,services
   });
 }
