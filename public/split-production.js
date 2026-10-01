@@ -3,7 +3,7 @@ const qs=(s,r=document)=>r.querySelector(s);
 const qsa=(s,r=document)=>Array.from(r.querySelectorAll(s));
 const live=document.createElement('div');live.className='spx-live';live.setAttribute('aria-live','polite');live.setAttribute('aria-atomic','true');document.body.prepend(live);
 const skip=document.createElement('a');skip.className='spx-skip';skip.href='#main-content';skip.textContent='Skip to main content';document.body.prepend(skip);
-const main=qs('main')||qs('[role="main"]')||qs('section');if(main&&!main.id)main.id='main-content';
+const main=qs('main')||qs('[role="main"]')||qs('section');if(main&&!main.id)main.id='main-content';if(main)skip.href='#'+main.id;
 document.title='SPLIT — Group payments + token launches';
 let meta=qs('meta[name="description"]');if(!meta){meta=document.createElement('meta');meta.name='description';document.head.appendChild(meta)}meta.content='Create group payment requests, track participant payments, and launch Solana tokens through SPLIT.';
 qsa('a[target="_blank"]').forEach(a=>{const rel=new Set(String(a.rel||'').split(/\s+/).filter(Boolean));rel.add('noopener');rel.add('noreferrer');a.rel=Array.from(rel).join(' ')});
@@ -57,14 +57,15 @@ async function refreshHealth(){
   const controller=new AbortController();const timer=setTimeout(()=>controller.abort(),5500);
   try{
     const response=await fetch('/api/health',{cache:'no-store',signal:controller.signal});
-    if(!response.ok)throw new Error('Health unavailable');
+    if(!response.ok&&response.status!==503)throw new Error('Health unavailable');
     const h=await response.json();
     const pay=Boolean(h.splitReady),launch=Boolean(h.launchReady),storage=Boolean(h.services?.storage),email=Boolean(h.services?.email);
-    setStatus('payments',pay?'Operational':'Needs attention');
-    setStatus('launch',launch?'Operational':'Needs attention');
-    setStatus('storage',storage?'Operational':'Needs attention');
+    setStatus('payments',h.paymentCreationReady&&pay?'Operational':pay?'New payments paused':'Needs attention');
+    setStatus('launch',launch?(h.network==='solana-mainnet'?'Mainnet':'Devnet · test only'):'Needs attention');
+    setStatus('storage',storage?(h.storageDurable?'Persistent':'Persistence required'):'Needs attention');
     setStatus('email',email?'Operational':h.services?.emailConfigured?'Verification pending':'Manual links available');
-    if(pay&&launch&&storage)setSummary('Core systems online','ok');
+    if(h.productionReady)setSummary('Production systems online','ok');
+    else if(pay&&launch&&storage)setSummary(h.storageDurable?'Devnet launchpad · payments available':'Preview available · live payments paused','warn');
     else if(pay||launch)setSummary('Partial service','warn');
     else setSummary('Service issue','bad');
   }catch{setStatus('payments','Status unavailable');setStatus('launch','Status unavailable');setStatus('email','Status unavailable');setStatus('storage','Status unavailable');setSummary('Status unavailable','warn')}
@@ -75,4 +76,24 @@ refreshHealth();setInterval(refreshHealth,120000);
 
 window.addEventListener('error',e=>{const msg=makeFriendly(e?.message||'');if(/not configured|temporarily unavailable/i.test(msg))toast('Something needs attention',msg,6500)});
 window.addEventListener('unhandledrejection',e=>{const msg=makeFriendly(e?.reason?.message||e?.reason||'');if(/not configured|temporarily unavailable/i.test(msg))toast('Something needs attention',msg,6500)});
+})();
+
+// Keep keyboard focus inside open dialogs and restore it on close.
+(()=>{
+  const dialogs=[...document.querySelectorAll('[aria-modal="true"]')];let previous=null,current=null;
+  const open=()=>dialogs.filter(el=>getComputedStyle(el).display!=='none').sort((a,b)=>(Number(getComputedStyle(a).zIndex)||0)-(Number(getComputedStyle(b).zIndex)||0)).at(-1);
+  const observer=new MutationObserver(()=>{
+    const next=open();if(next===current)return;
+    if(next){if(!current)previous=document.activeElement;current=next;const focus=next.querySelector('button,input,a[href]');focus?.focus()}
+    else{current=null;previous?.focus();previous=null}
+  });dialogs.forEach(el=>observer.observe(el,{attributes:true,attributeFilter:['style']}));
+  document.addEventListener('keydown',event=>{
+    const active=open();if(!active)return;
+    if(event.key==='Escape'){event.preventDefault();active.id==='walletChooserModal'?closeLaunchWalletModal():closeLaunchCreator();return}
+    if(event.key!=='Tab')return;
+    const items=[...active.querySelectorAll('button,input,select,textarea,a[href]')].filter(el=>!el.disabled&&!el.hidden&&el.getClientRects().length);
+    const first=items[0],last=items.at(-1);
+    if(event.shiftKey&&(document.activeElement===first||!active.contains(document.activeElement))){event.preventDefault();last?.focus()}
+    else if(!event.shiftKey&&(document.activeElement===last||!active.contains(document.activeElement))){event.preventDefault();first?.focus()}
+  });
 })();

@@ -6,6 +6,7 @@ import {authorizedCron,readOperation,writeOperation,reportError} from './_operat
 export default async function handler(req,res){
   res.setHeader('Cache-Control','no-store');
   if(!['GET','POST'].includes(req.method))return res.status(405).json({success:false,error:'Method not allowed.'});
+  if(process.env.SPLIT_STORAGE_MAINTENANCE==='true')return res.status(503).json({success:false,error:'Storage maintenance is in progress.'});
   if(!authorizedCron(req))return res.status(401).json({success:false,error:'Unauthorized.'});
   let release;
   try{

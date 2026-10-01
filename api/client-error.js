@@ -6,7 +6,7 @@ export default async function handler(req,res){
   const expected=new URL(process.env.APP_BASE_URL||process.env.RENDER_EXTERNAL_URL||'http://127.0.0.1:3100').origin;
   if(origin!==expected)return res.status(403).json({success:false});
   const now=Math.floor(Date.now()/60000);if(now!==bucket){bucket=now;total=0;limits.clear()}
-  const ip=req.socket.remoteAddress;const count=limits.get(ip)||0;
+  const ip=req.ip||req.socket.remoteAddress;const count=limits.get(ip)||0;
   if(count>=3||total>=30)return res.status(429).json({success:false});
   let body;try{body=typeof req.body==='string'?JSON.parse(req.body):req.body}catch{return res.status(400).json({success:false})}
   if(!['runtime','unhandled-rejection','asset-load'].includes(body?.kind))return res.status(400).json({success:false});

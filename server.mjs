@@ -16,6 +16,7 @@ function productionIndex(){return fs.readFileSync(indexPath,'utf8')}
 let indexHtml=productionIndex();
 
 app.disable('x-powered-by');
+app.set('trust proxy',1);
 app.use((req,res,next)=>{
   const requestId=crypto.randomUUID();
   req.requestId=requestId;
@@ -33,6 +34,24 @@ app.use((req,res,next)=>{
     const critical=['/api/create-launch','/api/register-launch','/api/creator-claim-revenue'];
     if((res.statusCode>=500&&req.path!=='/api/health')||(critical.includes(req.path)&&res.statusCode>=400&&!([400,401,402,403,405,409,429].includes(res.statusCode))))void reportError({event:'request_failed',requestId,route:req.path,status:res.statusCode});
   });
+  next();
+});
+
+// Bound expensive unauthenticated work. Upload wallet quotas are also atomic.
+const requestLimits=new Map();let requestWindow=0;
+app.use('/api',(req,res,next)=>{
+  if(process.env.SPLIT_STORAGE_MAINTENANCE==='true'&&!['/config','/health','/public-launches'].includes(req.path))return res.status(503).json({success:false,error:'Payment storage maintenance is in progress. Please try again shortly.'});
+  if(req.method!=='POST')return next();
+  const origin=req.headers.origin;
+  const expected=process.env.APP_BASE_URL||process.env.RENDER_EXTERNAL_URL;
+  if(origin&&expected&&origin!==new URL(expected).origin)return res.status(403).json({success:false,error:'This request must come from the SPLIT website.'});
+  const caps={'/create-split-invites':20,'/creator-auth-challenge':60,'/creator-auth-verify':60,'/create-launch':20,'/upload-media':30};
+  const cap=caps[req.path];if(!cap)return next();
+  const window=Math.floor(Date.now()/600000);if(window!==requestWindow){requestWindow=window;requestLimits.clear()}
+  const key=req.ip+':'+req.path,count=(requestLimits.get(key)||0)+1;
+  if(requestLimits.size>10000&&!requestLimits.has(key))return res.status(429).json({success:false,error:'SPLIT is busy. Please retry shortly.'});
+  requestLimits.set(key,count);
+  if(count>cap){res.setHeader('Retry-After',String(600-Math.floor(Date.now()/1000)%600));return res.status(429).json({success:false,error:'Too many requests. Please wait a few minutes and try again.'})}
   next();
 });
 
@@ -83,7 +102,7 @@ app.use((error,req,res,next)=>{
   res.status(status).json({success:false,error:status===413?'Request is too large.':'SPLIT could not complete that request.',requestId:req.requestId});
 });
 
-app.get('/healthz',(req,res)=>res.json({ok:true,service:'split-onchain',version:'76.0.0'}));
+app.get('/healthz',(req,res)=>res.json({ok:true,service:'split-onchain',version:'76.1.0'}));
 
 app.get('*',(req,res)=>{
   res.setHeader('Cache-Control','no-cache');

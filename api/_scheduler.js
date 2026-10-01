@@ -3,7 +3,7 @@ import monitor from './operations-monitor.js';
 import {reportError} from './_operations.js';
 
 export function startRecoveryScheduler(){
-  if(!process.env.CRON_SECRET)return ()=>{};
+  if(!process.env.CRON_SECRET||process.env.SPLIT_STORAGE_MAINTENANCE==='true')return ()=>{};
   let running=false,stopped=false;
   async function tick(){
     if(running||stopped)return;running=true;

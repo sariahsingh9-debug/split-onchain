@@ -78,6 +78,7 @@ export default async function handler(req,res){
       'https://api.metaplex.com/v1/launches/register',
       {
         method:'POST',
+        signal:AbortSignal.timeout(15000),
         headers:{'content-type':'application/json'},
         body:JSON.stringify({network,creatorWallet,genesisAccount,launch})
       }

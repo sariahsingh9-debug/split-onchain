@@ -13,6 +13,24 @@ export async function redisClient(){
   return clientPromise;
 }
 export async function closeStorage(){if(clientPromise){const client=await clientPromise;client.disconnect();clientPromise=null}}
+// Connectivity is not durability. Verify disk-backed writes on the actual store.
+export async function storageHealth(){
+  try{
+    const client=await redisClient();await client.ping();
+    const info=await client.info('persistence');
+    const fields=Object.fromEntries(info.split(/\r?\n/).filter(line=>line.includes(':')).map(line=>line.split(':',2)));
+    const durable=fields.aof_enabled==='1'&&fields.aof_last_write_status==='ok'&&fields.loading==='0';
+    return {ready:true,durable,verified:Boolean(fields.aof_enabled),reason:durable?null:'Payment records need persistent storage.'};
+  }catch{return {ready:false,durable:false,verified:false,reason:'Payment storage is temporarily unavailable.'}}
+}
+export async function requireDurableStorage(){
+  if(process.env.SPLIT_STORAGE_MAINTENANCE==='true'){const error=new Error('Payment storage maintenance is in progress. Please try again shortly.');error.code='STORAGE_NOT_DURABLE';throw error}
+  const state=await storageHealth();
+  if(!state.ready||!state.durable){
+    const error=new Error('New live payments are paused until durable payment storage is ready. Existing payment tracking remains available.');
+    error.code='STORAGE_NOT_DURABLE';throw error;
+  }
+}
 export async function put(pathname,body,options={}){
   const client=await redisClient();const key=String(pathname),value=String(body??'');
   const args=[key,value];

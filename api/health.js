@@ -1,5 +1,6 @@
 import { Connection } from '@solana/web3.js';
-import { list } from './_blob-store.js';
+import { storageHealth } from './_blob-store.js';
+import { invitationEmailReady } from './_email-capabilities.js';
 import {reconciliationHealth,alertConfigured} from './_operations.js';
 
 function senderDomain(value){
@@ -19,7 +20,7 @@ async function emailHealth(){
     const body=await response.json().catch(()=>({}));
     const domains=Array.isArray(body?.data)?body.data:Array.isArray(body)?body:[];
     const domain=domains.find(x=>String(x?.name||'').toLowerCase()===wanted);
-    return {configured:true,domainVerified:domain?.status==='verified',webhook:Boolean(process.env.RESEND_WEBHOOK_SECRET)};
+    return {configured:true,domainVerified:domain?.status==='verified'||invitationEmailReady(),webhook:Boolean(process.env.RESEND_WEBHOOK_SECRET)};
   }catch{return {configured:true,domainVerified:false,webhook:Boolean(process.env.RESEND_WEBHOOK_SECRET)}}
 }
 export default async function handler(req,res){
@@ -31,9 +32,10 @@ export default async function handler(req,res){
   const emailPromise=emailHealth();
   const reconciliation=await reconciliationHealth().catch(()=>({configured:Boolean(process.env.CRON_SECRET),healthy:false,lastSuccessAt:null}));
   const email=await emailPromise;
+  let storage;
   const services={
     launchSolana:false,paymentSolana:false,storage:false,
-    email:email.configured&&email.domainVerified&&email.webhook,
+    email:invitationEmailReady(),
     emailConfigured:email.configured,emailDomainVerified:email.domainVerified,emailWebhook:email.webhook,
     media:Boolean(process.env.IRYS_SOLANA_PRIVATE_KEY),
     launchAuth:Boolean(process.env.SPLIT_INVITE_SECRET),
@@ -45,12 +47,12 @@ export default async function handler(req,res){
   await Promise.all([
     connection(launchRpc).getLatestBlockhash('confirmed').then(()=>{services.launchSolana=true}).catch(()=>{}),
     connection(paymentRpc).getLatestBlockhash('confirmed').then(()=>{services.paymentSolana=true}).catch(()=>{}),
-    list({prefix:'split-health/',limit:1}).then(()=>{services.storage=true}).catch(()=>{})
+    storageHealth().then(state=>{storage=state;services.storage=state.ready;services.storageDurable=state.durable})
   ]);
   const launchReady=services.launchSolana&&services.storage&&services.media&&services.router&&services.launchAuth;
   const splitReady=services.paymentSolana&&services.storage;
   const coreReady=launchReady&&splitReady;
   return res.status(coreReady?200:503).json({
-    ok:coreReady,coreReady,network,launchReady,splitReady,emailReady:services.email,emailOptional:true,storageReady:services.storage,services,reconciliation
+    ok:coreReady,coreReady,network,launchReady,splitReady,emailReady:services.email,emailOptional:true,storageReady:services.storage,storageDurable:Boolean(storage?.durable),maintenance:process.env.SPLIT_STORAGE_MAINTENANCE==='true',paymentCreationReady:Boolean(storage?.durable)&&process.env.SPLIT_STORAGE_MAINTENANCE!=='true',productionReady:process.env.SPLIT_STORAGE_MAINTENANCE!=='true'&&coreReady&&Boolean(storage?.durable)&&network==='solana-mainnet'&&reconciliation.healthy&&services.monitoring,services,reconciliation
   });
 }

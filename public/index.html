@@ -2,10 +2,12 @@
 
 <html lang="en">
 <head>
+<script src="/assets/js/payment-math.js?v=9b8a0a12a894"></script>
 <script src="/assets/js/monitoring.js?v=bb15c1f34b48"></script>
 <meta charset="utf-8"/>
 <meta content="width=device-width,initial-scale=1" name="viewport"/>
-<title>SPLIT — Launch. Route. Split.</title>
+<title>SPLIT — Group payments and token launches</title>
+<meta name="description" content="Create a group payment, share individual payment links, and track every share. Explore the SPLIT Solana launchpad.">
 
 
 
@@ -65,42 +67,11 @@
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-<link rel="stylesheet" href="/assets/site.css?v=139dc8c30d82">
+<link rel="stylesheet" href="/assets/site.css?v=288a62b7ca93">
 <link rel="icon" href="/favicon.ico" sizes="any">
 <link rel="icon" type="image/png" href="/favicon.png">
 </head>
 <body>
-
 
 <div id="homeView">
 <div class="root" id="app">
@@ -110,13 +81,13 @@
 </svg></a><a class="btn" id="dashboardNavLink" href="?page=dashboard" style="text-decoration:none;display:inline-flex;align-items:center">Dashboard</a><a class="btn navLaunchpadV62" href="#launchpad" style="text-decoration:none;display:inline-flex;align-items:center">Launchpad</a><a class="btn primary" data-open-split-creator="true" href="#splitCreator" style="text-decoration:none;display:inline-flex;align-items:center">Create SPLIT</a></div></nav>
 <header class="hero heroV22">
 <div class="heroCopyV22">
-<div class="heroMetaV22"><span class="pulse"></span> Wallet-native payments · Solana launchpad · $SPLIT</div>
+<div class="heroMetaV22"><span class="pulse"></span> Wallet-native group payments</div>
 <h1>
       SHARED PAYMENTS.
       <span class="mutedLine">BUILT TO MOVE.</span>
 </h1>
 <div class="heroExplainV22">
-<p>Create group payments, collect each share, and launch tokens with built-in revenue splits.</p>
+<p>Create a group payment, share individual links, and track every share in one place.</p>
 </div>
 <div class="heroActions">
 <a class="btn primary large" data-open-split-creator="true" href="#splitCreator" style="text-decoration:none;display:inline-flex;align-items:center;justify-content:center">Create SPLIT</a>
@@ -127,7 +98,7 @@
 <div class="flowCanvasV22">
 <div class="flowTopV22">
 <span>How SPLIT works</span>
-<span class="flowLiveV22"><i></i> Live request</span>
+<span class="flowLiveV22"><i></i> Example request</span>
 </div>
 <div class="flowRingV22"></div>
 <div class="flowLineV22 l1"></div>
@@ -182,14 +153,14 @@
     </div>
     <div class="protocolRailItemV51">
       <small>$SPLIT</small>
-      <span>The culture around the mechanic</span>
+      <span>Planned project token</span>
     </div>
   </div>
 </div>
 
-<div class="ticker"><div class="tickerTrack">SPLIT THE BILL · SPLIT THE REVENUE · LAUNCH ON SOLANA · $SPLIT · WALLET NATIVE · ON-CHAIN SETTLEMENT · SPLIT THE BILL · SPLIT THE REVENUE · LAUNCH ON SOLANA · $SPLIT · WALLET NATIVE · ON-CHAIN SETTLEMENT ·</div></div>
 
-<section class="splitShowcase" id="groupPayShowcase"><div class="sectionHead"><div><div class="kicker">01 / Live demo</div><h2>See the split<br/>before it moves.</h2></div><p>A live example of how a shared payment looks inside SPLIT — clear totals, individual shares and collection status without the clutter.</p></div><div class="splitShowcaseGrid"><div class="card splitPreview"><div class="showcaseAccent"></div><div class="splitPreviewTop"><div><div class="livePill"><i></i> Live example</div><h3>Equal split preview</h3></div></div><div class="splitTotalDisplay"><span class="splitCounter" id="previewTotal">$300.00</span></div><div class="splitParticipants"><span id="previewPeople">4</span> intended participants</div><div class="participantList"><div class="participant"><span>Maya Chen</span><span class="share">Share 1: <b class="splitShare">$75.00</b></span><span class="status">Paid</span></div><div class="participant"><span>Theo Brooks</span><span class="share">Share 2: <b class="splitShare">$75.00</b></span><span class="status">Paid</span></div><div class="participant"><span>Amara Okafor</span><span class="share">Share 3: <b class="splitShare">$75.00</b></span><span class="status">Paid</span></div><div class="participant"><span>Leo Martin</span><span class="share">Share 4: <b class="splitShare">$75.00</b></span><span class="status pending">Pending</span></div></div><div class="splitPreviewNote">Sample names and statuses shown for product illustration only — no funds are being collected.</div><div class="splitProgress"><i id="previewProgress"></i></div><div class="splitCollected"><span>Sample collected</span><strong id="previewCollected">$225.00 USDC · 3 of 4 paid</strong></div><div class="splitPreviewAction"><a class="btn primary" data-open-split-creator="true" href="#splitCreator" id="showcaseCreateSplit" style="text-decoration:none;display:inline-flex;align-items:center;justify-content:center">Create a SPLIT</a></div></div><div class="card splitCalculator"><div class="kicker">Try the split</div><h3>Equal split calculator</h3><p>Adjust the example values to see an equal share instantly.</p><div class="calcField"><label for="showcaseCalcTotal">Total amount (USDC)</label><input id="showcaseCalcTotal" min="0" step="0.01" type="number" value="1200"/></div><div class="calcField"><label for="showcaseCalcPeople">Number of participants</label><input id="showcaseCalcPeople" max="50" min="2" step="1" type="number" value="4"/></div><div class="calcDivider"></div><div class="eachPay"><div class="eachPayLabel">Each person pays</div><div class="eachPayValue"><span class="eachPayNumber" id="showcaseCalcEach">$300.00</span></div><div class="calcHint">Equal split · calculated automatically</div></div></div></div></section><section class="participantSection" id="how-it-works">
+
+<section class="splitShowcase" id="groupPayShowcase"><div class="sectionHead"><div><div class="kicker">01 / Interactive demo</div><h2>See the split<br/>before it moves.</h2></div><p>Try a $1,200 USDC group payment. Change the total or group size to see exact shares.</p></div><div class="splitShowcaseGrid"><div class="card splitPreview"><div class="showcaseAccent"></div><div class="splitPreviewTop"><div><div class="livePill"><i></i> Sample request</div><h3>Equal split preview</h3></div></div><div class="splitTotalDisplay"><span class="splitCounter" id="previewTotal">$1,200.00</span></div><div class="splitParticipants"><span id="previewPeople">4</span> intended participants</div><div class="participantList"><div class="participant"><span>Maya Chen</span><span class="share">Share 1: <b class="splitShare">$300.00</b></span><span class="status">Paid</span></div><div class="participant"><span>Theo Brooks</span><span class="share">Share 2: <b class="splitShare">$300.00</b></span><span class="status">Paid</span></div><div class="participant"><span>Amara Okafor</span><span class="share">Share 3: <b class="splitShare">$300.00</b></span><span class="status">Paid</span></div><div class="participant"><span>Leo Martin</span><span class="share">Share 4: <b class="splitShare">$300.00</b></span><span class="status pending">Pending</span></div></div><div class="splitPreviewNote">Sample names and statuses shown for product illustration only — no funds are being collected.</div><div class="splitProgress"><i id="previewProgress"></i></div><div class="splitCollected"><span>Sample collected</span><strong id="previewCollected">$900.00 USDC · 3 of 4 paid</strong></div><div class="splitPreviewAction"><a class="btn primary" data-open-split-creator="true" href="#splitCreator" id="showcaseCreateSplit" style="text-decoration:none;display:inline-flex;align-items:center;justify-content:center">Create a SPLIT</a></div></div><div class="card splitCalculator"><div class="kicker">Try the split</div><h3>Equal split calculator</h3><p>Adjust the example values to see an equal share instantly.</p><div class="calcField"><label for="showcaseCalcTotal">Total amount (USDC)</label><input id="showcaseCalcTotal" min="0" step="0.01" type="number" value="1200"/></div><div class="calcField"><label for="showcaseCalcPeople">Number of participants</label><input id="showcaseCalcPeople" max="50" min="2" step="1" type="number" value="4"/></div><div class="calcDivider"></div><div class="eachPay"><div class="eachPayLabel">Each person pays</div><div class="eachPayValue"><span class="eachPayNumber" id="showcaseCalcEach">$300.00</span></div><div class="calcHint">Equal split · calculated automatically</div></div></div></div></section><section class="participantSection" id="how-it-works" aria-label="How SPLIT works">
 <div class="sectionHead">
 <div>
 <div class="kicker">02 / How it works</div>
@@ -204,7 +175,7 @@
 <div class="kicker">Participant request</div>
 <div class="paymentPreviewTitle">Weekend trip</div>
 </div>
-<div class="livePill"><i></i> Ready to pay</div>
+<div class="livePill">Example only</div>
 </div>
 <div class="paymentPreviewAmount">$300.00<span>USDC · Solana</span></div>
 <div class="paymentMeta">
@@ -214,8 +185,8 @@
 <div><span>Status</span><strong>Pending</strong></div>
 </div>
 <div class="paymentActions">
-<button class="btn">View details</button>
-<button class="btn primary">Pay creator</button>
+<button class="btn" type="button" onclick="scrollToId('trust')">Payment details</button>
+<button class="btn primary" type="button" data-open-split-creator="true">Create your request</button>
 </div>
 </div>
 <div class="shareSteps">
@@ -239,9 +210,9 @@
 <div>
 <div class="kicker">Animated payment router</div>
 <div class="settlementTitle">SPLIT at the center.<br/>Every network around it.</div>
-<div class="settlementIntro">A premium multichain routing layer for group payments — clear network selection, clear asset selection, and one visible settlement path from request to payment.</div>
+<div class="settlementIntro">Choose one network and asset for the whole group. Each payment goes directly to your receiving wallet.</div>
 </div>
-<div class="livePill"><i></i> Multichain ready</div>
+<div class="livePill">8 networks</div>
 </div>
 <div class="orbitStage">
 <svg aria-hidden="true" class="routeSvg" preserveaspectratio="none" viewbox="0 0 1000 620">
@@ -307,7 +278,7 @@
 </div>
 </div>
 </div>
-<div class="protocolAssets"><div class="protocolAssetsHead"><div class="kicker">Supported networks &amp; assets</div><p>Choose the network and asset once. Participants see the exact payment rail before they approve.</p></div><div class="assetStrip">
+<details class="protocolAssets"><summary>View supported networks and assets</summary><div class="protocolAssetsHead"><div class="kicker">Supported networks &amp; assets</div><p>Choose the network and asset once. Participants see the exact payment rail before they approve.</p></div><div class="assetStrip">
 <div class="assetNetwork"><strong>Solana</strong><span>Fast, low-cost payments.</span><div class="assetPills"><div class="assetPill">SOL</div><div class="assetPill">USDC</div><div class="assetPill">USDT</div></div></div>
 <div class="assetNetwork"><strong>Ethereum</strong><span>Primary EVM settlement.</span><div class="assetPills"><div class="assetPill">ETH</div><div class="assetPill">USDC</div><div class="assetPill">USDT</div></div></div>
 <div class="assetNetwork"><strong>Base</strong><span>Low-cost EVM payments.</span><div class="assetPills"><div class="assetPill">ETH</div><div class="assetPill">USDC</div></div></div>
@@ -316,7 +287,7 @@
 <div class="assetNetwork"><strong>Polygon</strong><span>Scalable EVM payments.</span><div class="assetPills"><div class="assetPill">POL</div><div class="assetPill">USDC</div></div></div>
 <div class="assetNetwork"><strong>Avalanche</strong><span>Fast-finality transactions.</span><div class="assetPills"><div class="assetPill">AVAX</div><div class="assetPill">USDC</div><div class="assetPill">USDT</div></div></div>
 <div class="assetNetwork"><strong>BNB Chain</strong><span>High-volume payments.</span><div class="assetPills"><div class="assetPill">BNB</div><div class="assetPill">USDT</div></div></div>
-</div><div class="assetFoot">Available assets are shown directly in the interface. Users do not need to paste token contract addresses.</div></div></section><section class="trustSection" id="trust">
+</div><div class="assetFoot">Available assets are shown directly in the interface. Users do not need to paste token contract addresses.</div></details></section><section class="trustSection" id="trust">
 <div class="sectionHead">
 <div>
 <div class="kicker">04 / Trust</div>
@@ -343,52 +314,12 @@
 </div>
 </div>
 </section>
-<section class="cultureV47" id="culture" data-reveal>
-  <div class="cultureGlowV47"></div>
-  <div class="cultureTopV47">
-    <div>
-      <div class="kicker">05 / $SPLIT</div>
-      <h2>ONE WORD.<br><span>THE WHOLE PRODUCT.</span></h2>
-    </div>
-    <p>The name is not decoration. Every part of the product comes back to the same mechanic: split value cleanly, visibly and on-chain.</p>
-  </div>
-
-  <div class="cultureManifestoV47" aria-label="SPLIT brand statement">
-    <span>SPLIT THE BILL.</span>
-    <span>SPLIT THE REVENUE.</span>
-    <span>SPLIT THE INTERNET.</span>
-  </div>
-
-  <div class="cultureGridV47">
-    <article>
-      <small>01</small>
-      <h3>Payments</h3>
-      <p>One total becomes clear individual shares with one shared status.</p>
-    </article>
-    <article>
-      <small>02</small>
-      <h3>Revenue</h3>
-      <p>Creator revenue can be routed between creator, treasury, reserve and protocol.</p>
-    </article>
-    <article>
-      <small>03</small>
-      <h3>Launches</h3>
-      <p>Token creation lives inside the same wallet-native SPLIT experience.</p>
-    </article>
-    <article class="cultureTokenV47">
-      <small>04</small>
-      <h3>$SPLIT</h3>
-      <p>The meme is the mechanic: one recognizable idea connecting the product and its culture.</p>
-      <div class="tokenOrbitV47"><i></i><b>$SPLIT</b></div>
-    </article>
-  </div>
-</section>
-
 <section class="launchV47" id="launchpad" data-reveal>
   <div class="launchIntroV47">
-    <div class="kicker">06 / Launchpad</div>
+    <div class="kicker">05 / Launchpad</div>
     <h2>FROM IDEA<br><span>TO ON-CHAIN.</span></h2>
-    <p>Create the token, add its media, connect the wallet, review the fixed creator-revenue routing, and submit the launch without leaving SPLIT.</p>
+    <p>Create a Solana token with fixed creator-revenue routing. Review the recipients and all wallet transactions before approval.</p>
+<p class="launch-network-notice" data-launch-network-notice>Solana devnet · test launches only. Devnet tokens have no real monetary value.</p>
 
     <div class="launchFactsV47">
       <div><span>Required SPLIT launch fee</span><strong>$0</strong></div>
@@ -397,7 +328,7 @@
       <div><span>Wallet approval</span><strong>Required on-chain</strong></div>
     </div>
 
-    <button class="btn primary large" onclick="openLaunchCreator()" type="button">Launch a coin</button>
+    <button class="btn primary large" onclick="openLaunchCreator()" type="button">Explore the launchpad</button>
   </div>
 
   <div class="launchTerminalV47">
@@ -437,10 +368,14 @@
 </section>
 
 
+<section class="cultureV47" id="culture" data-reveal>
+  <div class="cultureTopV47"><div><div class="kicker">06 / $SPLIT · planned</div><h2>THE NAME.<br><span>THE SHARED IDEA.</span></h2></div><p>$SPLIT is the planned project token. Its contract address, supply and token details will be published here if it launches. Group payments work with the assets shown in the payment form.</p></div>
+</section>
+
 <div class="cta finalCtaV29">
 <div class="kicker">07 / Create</div>
-<h2>SPLIT VALUE.<br/><span style="color:transparent;-webkit-text-stroke:1px #fff">MOVE CULTURE.</span></h2>
-<p>Start with a shared payment or take a token on-chain. The interface changes; the mechanic stays the same.</p>
+<h2>ONE GROUP.<br/><span style="color:transparent;-webkit-text-stroke:1px #fff">EVERY SHARE.</span></h2>
+<p>Set the total, choose the group, and let each person approve their own payment.</p>
 <a class="btn primary large" data-open-split-creator="true" href="#splitCreator" style="text-decoration:none;display:inline-flex;align-items:center;justify-content:center">Create SPLIT</a>
 </div><footer class="footer footerV47"><span>© 2026 SPLIT</span><span class="legalLinksV61"><a class="footerSocialV67 footerSocialV68 footerSocialV69" href="https://x.com/splitonchain" target="_blank" rel="noopener noreferrer" aria-label="SPLIT on X"><svg class="xIconV68 xIconV69" viewBox="0 0 24 24" aria-hidden="true">
 <path fill="currentColor" d="M18.244 2H21l-6.52 7.455L22.15 22h-6.006l-4.703-6.149L6.064 22H3.306l6.84-7.817L2.79 2h6.158l4.251 5.62L18.244 2Zm-.967 17.792h1.527L8.12 4.092H6.482l10.795 15.7Z"/>
@@ -480,17 +415,18 @@
   </div>
 </div>
 
-<div id="launchModal" style="display:none;position:fixed;inset:0;z-index:101;background:rgba(0,0,0,.82);backdrop-filter:blur(14px);padding:20px;justify-content:center">
+<div id="launchModal" role="dialog" aria-modal="true" aria-labelledby="launchDialogTitle" style="display:none;position:fixed;inset:0;z-index:101;background:rgba(0,0,0,.82);backdrop-filter:blur(14px);padding:20px;justify-content:center">
   <div class="launchShell">
     <div class="launchHead">
       <div>
         <div class="kicker">SPLIT Launchpad · Solana</div>
-        <h2>Launch a token.</h2>
+        <h2 id="launchDialogTitle">Launch a token.</h2>
       </div>
       <button class="btn" onclick="closeLaunchCreator()" type="button">Close</button>
     </div>
 
     <div class="launchBody">
+      <p class="launch-network-notice" data-launch-network-notice>Solana devnet · test launches only. Devnet tokens have no real monetary value.</p>
       <div class="launchGrid">
         <div>
           <div class="launchPanel">
@@ -658,7 +594,7 @@
   </div>
 </div>
 
-<script src="/assets/js/launchpad.js?v=6a1ee577ffa2"></script>
+<script src="/assets/js/launchpad.js?v=496560e4b600"></script>
 </div>
 
 
@@ -712,7 +648,6 @@
   </div>
 </div>
 
-
 <div id="tokensDirectoryPage" style="display:none">
   <div class="tdShellV55">
     <nav class="tdNavV55">
@@ -728,20 +663,20 @@
     <header class="tdHeroV55">
       <div>
         <div class="kicker">LAUNCHED WITH SPLIT</div>
-        <h1>THE TOKENS.<br><span>THE PROOF.</span></h1>
+        <h1>SPLIT TOKENS.<br><span>ON-CHAIN.</span></h1>
         <p>Every token shown here comes from a successfully registered SPLIT launch. Search by name, ticker or mint and open the on-chain record directly.</p>
       </div>
       <aside>
         <div><span>Directory</span><strong>Public</strong></div>
-        <div><span>Network</span><strong>Solana</strong></div>
+        <div><span>Network</span><strong id="tdNetwork">Solana devnet</strong></div>
         <div><span>Source</span><strong>SPLIT launches</strong></div>
         <div><span>Ordering</span><strong>Newest first</strong></div>
       </aside>
     </header>
 
     <div class="tdControlsV55">
-      <label><span>⌕</span><input id="tdSearch" placeholder="Search name, $ticker or mint…" autocomplete="off"></label>
-      <select id="tdSort">
+      <label><span>⌕</span><input aria-label="Search tokens" id="tdSearch" placeholder="Search name, $ticker or mint…" autocomplete="off"></label>
+      <select id="tdSort" aria-label="Sort tokens">
         <option value="newest">Newest launches</option>
         <option value="oldest">Oldest launches</option>
         <option value="name">Name A–Z</option>
@@ -765,7 +700,6 @@
     </footer>
   </div>
 </div>
-
 
 <div id="creatorDashboardPage" style="display:none">
   <div class="cdShellV62">
@@ -869,7 +803,7 @@
 </div>
 
 
-<div id="splitCreatorPage">
+<div id="splitCreatorPage" data-delivery="link">
 <div class="sc-wrap">
 <div class="sc-nav">
 <div class="sc-logo"><img class="splitBrandLogoV66" src="/split-logo.png" alt="" aria-hidden="true"><span>SPLIT</span></div>
@@ -887,7 +821,8 @@
 <section class="sc-hero">
 <div class="sc-eyebrow">Group payments / multichain</div>
 <h1>Create your SPLIT.</h1>
-<p>Build the request in one view. Pick the settlement rail, choose the asset, add the group, and review exactly what every participant will see before you create it.</p>
+<p>Choose the total, add your group, and share a payment link for each person.</p>
+<p class="sc-availability" id="scAvailability" role="status">Checking payment availability…</p>
 </section>
 <div class="sc-layout">
 <div class="sc-card">
@@ -913,7 +848,7 @@
 </div>
 <div class="sc-manual" id="scManualBox">
 <div class="sc-field">
-<label id="scManualLabel">Receiving address</label>
+<label id="scManualLabel" for="scManualAddress">Receiving address</label>
 <input autocomplete="off" id="scManualAddress" placeholder="Wallet address"/>
 </div>
 <div class="sc-status" id="scManualStatus">No wallet connection is required.</div>
@@ -921,25 +856,27 @@
 </div>
 <div class="sc-label">03 / Split details</div>
 <div class="sc-field">
-<label>Split name</label>
+<label for="scSplitName">Split name</label>
 <input id="scSplitName" placeholder="Weekend trip"/>
 </div>
 <div class="sc-field">
-<label>Total amount</label>
+<label for="scTotal">Total amount</label>
 <input id="scTotal" min="0" step="0.000001" type="number" value="1200"/>
 </div>
-<div class="sc-label" style="margin-top:24px">Participants & email invitations</div>
+<div class="sc-label" style="margin-top:24px">Participants</div>
+<div class="sc-label" style="margin-top:20px">Delivery</div>
+<div class="sc-mode"><button class="selected" id="scModeLink" type="button">Share links</button><button id="scModeEmail" type="button" disabled>Email invitations</button></div>
 <div class="scPeopleHeaderV65" aria-hidden="true">
   <span>Participant</span>
-  <span>Email address</span>
+  <span class="sc-email-heading">Email address</span>
   <span>Share</span>
   <span></span>
 </div>
 <div id="scPeople"></div>
 <button class="sc-btn" id="scAddPerson" type="button">Add participant</button>
-<div class="sc-note">Each participant must have an email address. When you create the SPLIT, SPLIT emails each person a unique payment link showing only their share, the selected network/asset, and your payout wallet.</div>
+<div class="sc-note" id="scDeliveryNote">Share each participant’s payment link in your group chat. No email address is required.</div>
 <button class="sc-btn sc-btn-primary sc-full" id="scCreateSplit" type="button">Create SPLIT</button>
-<div class="sc-status" id="scCreateStatus"></div>
+<div class="sc-status" id="scCreateStatus" role="status" aria-live="polite"></div>
 <div class="sc-successV48" id="scSuccessPanel" style="display:none">
   <div class="sc-success-icon">✓</div>
   <div class="sc-success-copy">
@@ -950,7 +887,7 @@
   <button class="sc-btn" id="scCopySummary" type="button">Copy summary</button>
   <div class="sc-inviteDeliveryV52">
     <div class="sc-inviteDeliveryHead">
-      <div><small>EMAIL DELIVERY</small><strong>Participant links</strong></div>
+      <div><small>PAYMENT LINKS</small><strong>Participant links</strong></div>
       <button class="sc-btn" id="scRefreshInviteStatus" type="button">Refresh status</button>
     </div>
     <div id="scInviteDeliveryList"></div>
@@ -962,19 +899,19 @@
 <h2>Payment request</h2>
 <div class="sc-badges">
 <div class="sc-badge" id="scNetworkBadge">Solana</div>
-<div class="sc-badge" id="scAssetBadge">SOL</div>
+<div class="sc-badge" id="scAssetBadge">USDC</div>
 </div>
 <div class="sc-summary">
-<div><span>Total</span><strong id="scSumTotal">1,200.00 SOL</strong></div>
+<div><span>Total</span><strong id="scSumTotal">1,200.00 USDC</strong></div>
 <div><span>Participants</span><strong id="scSumPeople">4</strong></div>
-<div><span>Approx. each</span><strong class="sc-big" id="scSumEach">300.00 SOL</strong></div>
+<div><span>Each person pays</span><strong class="sc-big" id="scSumEach">300.00 USDC</strong></div>
 <div><span>Recipient</span><strong id="scSumRecipient">Connect wallet</strong></div>
 </div>
 <div class="sc-sharebox">
 <div class="sc-label">Participant view</div>
-<h3>Estimated share</h3>
-<p class="sc-muted">This preview is approximate. When you create the SPLIT, the server calculates exact shares in the asset’s smallest unit and emails each participant their signed amount.</p>
-<div class="sc-big" id="scParticipantAmount">300.00 SOL</div>
+<h3>First participant’s share</h3>
+<p class="sc-muted">Shares use the asset’s smallest unit. Any remainder goes to the first participants so all shares add up to the total.</p>
+<div class="sc-big" id="scParticipantAmount">300.00 USDC</div>
 </div>
 <div class="sc-recentV48">
   <div class="sc-recent-head"><div><div class="sc-label">Saved locally</div><h3>Recent SPLITs</h3></div><span>Latest 4</span></div>
@@ -984,27 +921,21 @@
 </div>
 </div>
 </div>
-<script src="/assets/js/split-creator.js?v=5b958005dc6e"></script>
+<script src="/assets/js/split-creator.js?v=9eb887d5188f"></script>
 
 <script src="/assets/js/reveal.js?v=7d9dbc45510f"></script>
 
-
 <script src="/assets/js/pointer-effects.js?v=688bcc263303"></script>
-
 
 <script src="/assets/js/section-effects.js?v=3e80595cc655"></script>
 
-
 <script src="/assets/js/participant-payment.js?v=44d6f755d7cc"></script>
 
-
-<script src="/assets/js/token-directory.js?v=cdbdf34513d4"></script>
-
+<script src="/assets/js/token-directory.js?v=6c3f7c065f9f"></script>
 
 <script src="/assets/js/creator-dashboard.js?v=47386864c179"></script>
 
-
 <script src="/assets/js/wallet-resume.js?v=b82c8737e4fd"></script>
 
-<script defer src="/split-production.js?v=7ae8149e401c"></script>
+<script defer src="/split-production.js?v=7ce466357d0a"></script>
 </body></html>

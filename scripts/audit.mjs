@@ -5,7 +5,7 @@ const failures=[];const requireCheck=(ok,message)=>{if(!ok)failures.push(message
 const pkg=JSON.parse(fs.readFileSync('package.json','utf8'));
 requireCheck(!Object.keys(pkg.dependencies).some(k=>/@netlify|@vercel/.test(k)),'Obsolete hosting dependency.');
 requireCheck(!fs.existsSync('netlify')&&!fs.existsSync('netlify.toml'),'Obsolete hosting adapter.');
-for(const file of [...fs.readdirSync('api').map(f=>'api/'+f),...fs.readdirSync('public/assets/js').map(f=>'public/assets/js/'+f),'server.mjs','scripts/reconcile-render.mjs','scripts/build.mjs'])if(/\.(js|mjs)$/.test(file))execFileSync(process.execPath,['--check',file],{stdio:'pipe'});
+for(const file of [...fs.readdirSync('api').map(f=>'api/'+f),...fs.readdirSync('public/assets/js').map(f=>'public/assets/js/'+f),'server.mjs','scripts/reconcile-render.mjs','scripts/build.mjs','scripts/migrate-storage.mjs','vendor/safe-bigint-buffer/index.cjs'])if(/\.(js|mjs|cjs)$/.test(file))execFileSync(process.execPath,['--check',file],{stdio:'pipe'});
 const html=fs.readFileSync('public/index.html','utf8');parse(html);
 requireCheck(!/<style\b/.test(html),'Inline homepage stylesheet.');requireCheck(!/data:image\//.test(html),'Embedded homepage image.');
 for(const m of html.matchAll(/<script\b([^>]*)>([\s\S]*?)<\/script>/g))requireCheck(/src=/.test(m[1])||/application\/ld\+json/.test(m[1]),'Inline homepage behavior.');

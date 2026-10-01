@@ -1,4 +1,4 @@
-<div id="splitCreatorPage">
+<div id="splitCreatorPage" data-delivery="link">
 <div class="sc-wrap">
 <div class="sc-nav">
 <div class="sc-logo"><img class="splitBrandLogoV66" src="/split-logo.png" alt="" aria-hidden="true"><span>SPLIT</span></div>
@@ -16,7 +16,8 @@
 <section class="sc-hero">
 <div class="sc-eyebrow">Group payments / multichain</div>
 <h1>Create your SPLIT.</h1>
-<p>Build the request in one view. Pick the settlement rail, choose the asset, add the group, and review exactly what every participant will see before you create it.</p>
+<p>Choose the total, add your group, and share a payment link for each person.</p>
+<p class="sc-availability" id="scAvailability" role="status">Checking payment availability…</p>
 </section>
 <div class="sc-layout">
 <div class="sc-card">
@@ -42,7 +43,7 @@
 </div>
 <div class="sc-manual" id="scManualBox">
 <div class="sc-field">
-<label id="scManualLabel">Receiving address</label>
+<label id="scManualLabel" for="scManualAddress">Receiving address</label>
 <input autocomplete="off" id="scManualAddress" placeholder="Wallet address"/>
 </div>
 <div class="sc-status" id="scManualStatus">No wallet connection is required.</div>
@@ -50,25 +51,27 @@
 </div>
 <div class="sc-label">03 / Split details</div>
 <div class="sc-field">
-<label>Split name</label>
+<label for="scSplitName">Split name</label>
 <input id="scSplitName" placeholder="Weekend trip"/>
 </div>
 <div class="sc-field">
-<label>Total amount</label>
+<label for="scTotal">Total amount</label>
 <input id="scTotal" min="0" step="0.000001" type="number" value="1200"/>
 </div>
-<div class="sc-label" style="margin-top:24px">Participants & email invitations</div>
+<div class="sc-label" style="margin-top:24px">Participants</div>
+<div class="sc-label" style="margin-top:20px">Delivery</div>
+<div class="sc-mode"><button class="selected" id="scModeLink" type="button">Share links</button><button id="scModeEmail" type="button" disabled>Email invitations</button></div>
 <div class="scPeopleHeaderV65" aria-hidden="true">
   <span>Participant</span>
-  <span>Email address</span>
+  <span class="sc-email-heading">Email address</span>
   <span>Share</span>
   <span></span>
 </div>
 <div id="scPeople"></div>
 <button class="sc-btn" id="scAddPerson" type="button">Add participant</button>
-<div class="sc-note">Each participant must have an email address. When you create the SPLIT, SPLIT emails each person a unique payment link showing only their share, the selected network/asset, and your payout wallet.</div>
+<div class="sc-note" id="scDeliveryNote">Share each participant’s payment link in your group chat. No email address is required.</div>
 <button class="sc-btn sc-btn-primary sc-full" id="scCreateSplit" type="button">Create SPLIT</button>
-<div class="sc-status" id="scCreateStatus"></div>
+<div class="sc-status" id="scCreateStatus" role="status" aria-live="polite"></div>
 <div class="sc-successV48" id="scSuccessPanel" style="display:none">
   <div class="sc-success-icon">✓</div>
   <div class="sc-success-copy">
@@ -79,7 +82,7 @@
   <button class="sc-btn" id="scCopySummary" type="button">Copy summary</button>
   <div class="sc-inviteDeliveryV52">
     <div class="sc-inviteDeliveryHead">
-      <div><small>EMAIL DELIVERY</small><strong>Participant links</strong></div>
+      <div><small>PAYMENT LINKS</small><strong>Participant links</strong></div>
       <button class="sc-btn" id="scRefreshInviteStatus" type="button">Refresh status</button>
     </div>
     <div id="scInviteDeliveryList"></div>
@@ -91,19 +94,19 @@
 <h2>Payment request</h2>
 <div class="sc-badges">
 <div class="sc-badge" id="scNetworkBadge">Solana</div>
-<div class="sc-badge" id="scAssetBadge">SOL</div>
+<div class="sc-badge" id="scAssetBadge">USDC</div>
 </div>
 <div class="sc-summary">
-<div><span>Total</span><strong id="scSumTotal">1,200.00 SOL</strong></div>
+<div><span>Total</span><strong id="scSumTotal">1,200.00 USDC</strong></div>
 <div><span>Participants</span><strong id="scSumPeople">4</strong></div>
-<div><span>Approx. each</span><strong class="sc-big" id="scSumEach">300.00 SOL</strong></div>
+<div><span>Each person pays</span><strong class="sc-big" id="scSumEach">300.00 USDC</strong></div>
 <div><span>Recipient</span><strong id="scSumRecipient">Connect wallet</strong></div>
 </div>
 <div class="sc-sharebox">
 <div class="sc-label">Participant view</div>
-<h3>Estimated share</h3>
-<p class="sc-muted">This preview is approximate. When you create the SPLIT, the server calculates exact shares in the asset’s smallest unit and emails each participant their signed amount.</p>
-<div class="sc-big" id="scParticipantAmount">300.00 SOL</div>
+<h3>First participant’s share</h3>
+<p class="sc-muted">Shares use the asset’s smallest unit. Any remainder goes to the first participants so all shares add up to the total.</p>
+<div class="sc-big" id="scParticipantAmount">300.00 USDC</div>
 </div>
 <div class="sc-recentV48">
   <div class="sc-recent-head"><div><div class="sc-label">Saved locally</div><h3>Recent SPLITs</h3></div><span>Latest 4</span></div>

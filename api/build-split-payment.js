@@ -17,7 +17,7 @@ export default async function handler(req,res){
       const payerKey=new PublicKey(String(payer||''));const destination=new PublicKey(meta.payout);
       // Group payments are always mainnet. Never inherit the launchpad devnet RPC.
       const rpc=process.env.PAYMENT_SOLANA_RPC_URL||'https://api.mainnet-beta.solana.com';
-      const connection=new Connection(rpc,'confirmed');const tx=new Transaction();tx.feePayer=payerKey;
+      const connection=new Connection(rpc,{commitment:'confirmed',disableRetryOnRateLimit:true,fetch:(url,options)=>fetch(url,{...options,signal:AbortSignal.timeout(8000)})});const tx=new Transaction();tx.feePayer=payerKey;
       if(meta.asset==='SOL'){
         tx.add(SystemProgram.transfer({fromPubkey:payerKey,toPubkey:destination,lamports:decimalToUnits(participant.amount,9)}));
       }else{

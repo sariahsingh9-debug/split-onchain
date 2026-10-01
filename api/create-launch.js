@@ -1,7 +1,7 @@
 import crypto from 'node:crypto';
 import { Keypair, PublicKey } from '@solana/web3.js';
 import { buildCreateLaunchPayload } from '@metaplex-foundation/genesis';
-import { list } from './_blob-store.js';
+import { list, requireDurableStorage } from './_blob-store.js';
 import { deriveFeeWallet, signRoutingPayload, validSolanaAddress } from './_routing-utils.js';
 import { creatorSession } from './_creator-utils.js';
 import { FIXED_ROUTING } from './_launch-policy.js';
@@ -44,6 +44,7 @@ export default async function handler(req,res){
     const {config,imageUrl,bannerUrl}=bodyOf(req);const wallet=String(config?.wallet||'');
     if(session.wallet!==wallet)return res.status(401).json({success:false,error:'Launch wallet does not match the authenticated wallet.'});
     if(!validSolanaAddress(wallet))return res.status(400).json({success:false,error:'Invalid creator wallet.'});
+    if(process.env.SOLANA_NETWORK==='solana-mainnet')await requireDurableStorage();
     const name=clean(config?.name,32);const symbol=clean(config?.symbol,10).toUpperCase();const description=clean(config?.description,250);
     if(name.length<1)return res.status(400).json({success:false,error:'Token name is required.'});
     if(!/^[A-Z0-9_]{1,10}$/.test(symbol))return res.status(400).json({success:false,error:'Ticker must be 1–10 letters, numbers or underscores.'});
@@ -71,7 +72,7 @@ export default async function handler(req,res){
     if(!['solana-devnet','solana-mainnet'].includes(network))throw new Error('SOLANA_NETWORK must be solana-devnet or solana-mainnet.');
     const input={wallet,token:{name,symbol,image,description,externalLinks:{...(website?{website}:{}),...(twitter?{twitter}: {})}},network,quoteMint:'SOL',launchType:'bondingCurve',launch:{creatorFeeWallet:feeWallet.publicKey.toBase58(),firstBuyAmount:firstBuy.sol}};
     const payload=buildCreateLaunchPayload(input);
-    const metaplex=await fetchWithRetry('https://api.metaplex.com/v1/launches/create',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify(payload)});
+    const metaplex=await fetchWithRetry('https://api.metaplex.com/v1/launches/create',{method:'POST',signal:AbortSignal.timeout(15000),headers:{'content-type':'application/json'},body:JSON.stringify(payload)});
     const out=await metaplex.json().catch(()=>({}));
     if(!metaplex.ok||!out?.success){
       void reportError({event:'launch_provider_failed',route:'/api/create-launch',status:metaplex.ok?502:metaplex.status,requestId:req.requestId});
@@ -94,7 +95,7 @@ export default async function handler(req,res){
     const message=String(error?.message||'Launch preparation failed.');
     if(/creator login|SPLIT link|expired/i.test(message))return res.status(401).json({success:false,error:'Creator login is required.'});
     const validation=/must be|invalid|ticker|token image|banner|website|twitter|supply|percentage|recipient|network/i.test(message);
-    const unavailable=/temporarily|unavailable|fetch|timeout/i.test(message);
+    const unavailable=error.code==='STORAGE_NOT_DURABLE'||/temporarily|unavailable|fetch|timeout/i.test(message);
     return res.status(validation?400:(unavailable?503:500)).json({success:false,error:message});
   }
 }

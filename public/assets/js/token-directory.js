@@ -120,7 +120,7 @@
     stats.append(
       makeStat('Mint',tokensShort(item.mintAddress)),
       makeStat('SPLIT Protocol','10% of creator revenue'),
-      makeStat('Revenue reserve',(item.liquidityPercent??15)+'%'),
+      makeStat('Revenue reserve',(item.liquidityPercent??35)+'%'),
       makeStat('Network',item.network==='solana-devnet'?'Solana Devnet':'Solana')
     );
 

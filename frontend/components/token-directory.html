@@ -13,20 +13,20 @@
     <header class="tdHeroV55">
       <div>
         <div class="kicker">LAUNCHED WITH SPLIT</div>
-        <h1>THE TOKENS.<br><span>THE PROOF.</span></h1>
+        <h1>SPLIT TOKENS.<br><span>ON-CHAIN.</span></h1>
         <p>Every token shown here comes from a successfully registered SPLIT launch. Search by name, ticker or mint and open the on-chain record directly.</p>
       </div>
       <aside>
         <div><span>Directory</span><strong>Public</strong></div>
-        <div><span>Network</span><strong>Solana</strong></div>
+        <div><span>Network</span><strong id="tdNetwork">Solana devnet</strong></div>
         <div><span>Source</span><strong>SPLIT launches</strong></div>
         <div><span>Ordering</span><strong>Newest first</strong></div>
       </aside>
     </header>
 
     <div class="tdControlsV55">
-      <label><span>⌕</span><input id="tdSearch" placeholder="Search name, $ticker or mint…" autocomplete="off"></label>
-      <select id="tdSort">
+      <label><span>⌕</span><input aria-label="Search tokens" id="tdSearch" placeholder="Search name, $ticker or mint…" autocomplete="off"></label>
+      <select id="tdSort" aria-label="Sort tokens">
         <option value="newest">Newest launches</option>
         <option value="oldest">Oldest launches</option>
         <option value="name">Name A–Z</option>

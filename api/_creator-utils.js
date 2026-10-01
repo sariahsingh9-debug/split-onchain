@@ -44,7 +44,8 @@ export async function writeCreatorLaunchIndex(route,record,routingToken){
 }
 export async function writeCreatorRevenueEvent(route,{grossLamports,distributionSignature,transfers=[]}){
   const n=normalizeCreatorWallet(route.creatorWallet,'solana');
-  const eventId=`${Date.now()}-${crypto.randomBytes(4).toString('hex')}`;
+  if(!distributionSignature)throw new Error('A confirmed distribution signature is required.');
+  const eventId=crypto.createHash('sha256').update(distributionSignature).digest('hex');
   const item={
     type:'revenue',creatorWallet:n.wallet,routingId:route.routingId,mintAddress:route.mintAddress||'',
     tokenName:route.token?.name||'',symbol:route.token?.symbol||'',network:route.network,

@@ -20,6 +20,25 @@ The current Render Key Value instance was found on the free plan with disk persi
 
 ## Frontend
 
-Edit `frontend/components/` for the five page views, `frontend/styles/` for ordered feature styles, and `public/assets/js/` for page behaviors. `frontend/index.html` is the small shell. `npm run build` assembles `public/index.html` and optimizes `public/assets/site.css`. Generated output is committed because the existing Render build command is `npm install`.
+Edit `frontend/components/` for the five page views, `frontend/styles/` for ordered feature styles, and `public/assets/js/` for page behaviors. `frontend/index.html` is the small shell. `npm run build` assembles `public/index.html` and optimizes `public/assets/site.css`. Generated output is committed for inspection, and `prestart` rebuilds it automatically before serving the site.
 
 Validate changes with `npm run build`, `npm run audit`, and `npm test`. Financial policy remains Creator 35%, Treasury 20%, Reserve 35%, Protocol 10%, with a $5 USDC-equivalent minimum first buy. Local tests use a Redis protocol fixture and simulated chain RPC; they do not submit financial transactions.
+
+## Readiness and live payments
+
+`storageReady` means the store responds. `storageDurable` verifies `INFO persistence` reports append-only persistence with successful writes and no loading state. `paymentCreationReady` requires that durability check. The current free instance therefore remains available for reading and recovering existing requests, while new live payment creation is paused. The form remains available to preview and configure.
+
+The launchpad stays explicitly on Solana devnet. Test tokens have no monetary value. Mainnet launch preparation and creator fee claims require durable storage; do not switch to mainnet until a funded-wallet launch, registration, claim, routing and interruption recovery have been verified. RPC/configuration readiness does not prove this financial flow.
+
+Invitation email is optional. Link sharing is the default and requires participant names, not email addresses. Email mode requires credentials plus `SPLIT_EMAIL_DOMAIN_VERIFIED=true`, which must only be set after the sending domain is actually verified in Resend. Webhook configuration enables delivery tracking but does not block link sharing. Use the existing owner-only operational alert sender until a domain is verified.
+
+## Safe storage migration
+
+Do not upgrade the current free instance in place: Render discards its data during an upgrade. Create a separate paid Key Value instance in Virginia with persistence enabled and `noeviction`, and keep the original instance until the switch is verified.
+
+1. Set `SPLIT_STORAGE_MAINTENANCE=true` on the web service and deploy. This pauses API writes and scheduled reconciliation. The website and public directory remain available.
+2. Run `scripts/migrate-storage.mjs` on Render's private network, with `SOURCE_REDIS_URL` and `TARGET_REDIS_URL` held in secure runtime variables. First run `node scripts/migrate-storage.mjs --copy --source-paused`, then `node scripts/migrate-storage.mjs --verify --source-paused`. Both report counts, never records or connection secrets. Any mismatch stops the migration without overwriting the destination.
+3. Set the web service's `REDIS_URL` to the new internal connection URL, and remove the maintenance flag. Deploy and verify `/api/config` has `storageDurable: true` and `paymentCreationReady: true`, and that existing requests, transaction indices, creator history and reconciliation entries remain accessible.
+4. Configure the Render service health check as `/healthz`. For always-on recovery, move the web service to a paid instance and configure the native two-minute reconciliation cron described above.
+
+The service now builds the frontend in `prestart`; edits no longer depend on remembering to refresh generated files manually. Node 24 is the supported runtime. The validation workflow runs the build, source checks, backend tests and desktop/mobile browser flows on every push and PR.

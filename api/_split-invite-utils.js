@@ -55,7 +55,8 @@ export function splitMetaPath(id){return `split-requests/${id}/meta.json`}
 export function participantPath(id,participantId){return `split-requests/${id}/participants/${participantId}.json`}
 export function paymentTxPath(network,txHash){
   const safeNetwork=cleanText(network,40).replace(/[^a-zA-Z0-9_-]/g,'_');
-  const digest=crypto.createHash('sha256').update(String(txHash||'')).digest('hex');
+  const canonicalHash=network==='solana'?String(txHash||''):String(txHash||'').toLowerCase();
+  const digest=crypto.createHash('sha256').update(canonicalHash).digest('hex');
   return `payment-tx-index/${safeNetwork}/${digest}.json`;
 }
 

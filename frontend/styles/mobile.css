@@ -47,7 +47,7 @@
     min-height:36px!important;
     padding:0 10px!important;
     border-radius:11px!important;
-    font-size:9px!important;
+    font-size:12px!important;
     white-space:nowrap!important;
   }
   .root .navactions .btn.primary{
@@ -55,7 +55,7 @@
     min-height:36px!important;
     padding:0 11px!important;
     border-radius:11px!important;
-    font-size:9px!important;
+    font-size:12px!important;
     white-space:nowrap!important;
   }
   .root .hero.heroV22{
@@ -75,7 +75,7 @@
     padding:8px 10px!important;
     margin:0 0 20px!important;
     gap:8px!important;
-    font-size:7.5px!important;
+    font-size:12px!important;
     line-height:1.45!important;
     letter-spacing:.105em!important;
     white-space:normal!important;
@@ -113,7 +113,7 @@
     max-width:100%!important;
     font-size:13px!important;
     line-height:1.65!important;
-    color:#8a8a8a!important;
+    color:#999!important;
   }
   .root .heroFlowV22{
     width:100%!important;
@@ -190,7 +190,7 @@
   background:linear-gradient(145deg,#101010,#080808);
 }
 .launchInitialBuyV72>div strong{display:block;font-size:14px;margin-bottom:6px}
-.launchInitialBuyV72>div span{display:block;color:#858585;font-size:12px;line-height:1.55}
+.launchInitialBuyV72>div span{display:block;color:#999;font-size:12px;line-height:1.55}
 .launchInitialBuyV72 label{
   margin-top:14px;display:flex;align-items:center;gap:9px;
   border:1px solid #333;border-radius:14px;background:#050505;padding:10px 12px;
@@ -200,8 +200,8 @@
   min-width:0;flex:1;background:transparent;border:0;outline:0;color:#fff;
   font:inherit;font-size:20px;font-weight:900;
 }
-.launchInitialBuyV72 label>b{font-size:10px;letter-spacing:.08em;color:#777;text-transform:uppercase;white-space:nowrap}
-.launchInitialBuyV72 small{display:block;color:#656565;line-height:1.5;margin-top:10px}
+.launchInitialBuyV72 label>b{font-size:12px;letter-spacing:.08em;color:#999;text-transform:uppercase;white-space:nowrap}
+.launchInitialBuyV72 small{display:block;color:#999;line-height:1.5;margin-top:10px}
 .walletRuntimeV73{
   display:none;
   margin:0 0 12px;
@@ -209,8 +209,8 @@
   border:1px solid #2a2a2a;
   border-radius:12px;
   background:#0b0b0b;
-  color:#8c8c8c;
-  font-size:10px;
+  color:#999;
+  font-size:12px;
   line-height:1.55;
 }
 .walletRuntimeV73.show{display:block}
@@ -226,7 +226,7 @@
   border-radius:12px;
 }
 .walletManualV73 .btn{padding:9px 11px;white-space:nowrap}
-.walletManualV73 span{color:#696969;font-size:9px;line-height:1.45}
+.walletManualV73 span{color:#999;font-size:12px;line-height:1.45}
 @media(max-width:560px){
   #walletChooserModal{
     padding:max(8px,env(safe-area-inset-top)) 8px max(8px,env(safe-area-inset-bottom));
@@ -239,6 +239,6 @@
   }
   .walletChooserHead h3{font-size:24px}
   .walletOption{min-height:66px}
-  .walletOption small{font-size:9px;line-height:1.35}
+  .walletOption small{font-size:12px;line-height:1.35}
   .walletManualV73{align-items:flex-start;flex-direction:column}
 }

@@ -43,5 +43,5 @@ export default async function handler(req,res){
     ]});
     if(!receipt?.id)throw new Error('Irys did not return an upload id.');
     return res.status(200).json({url:`https://gateway.irys.xyz/${receipt.id}`,id:receipt.id,contentType:actualType});
-  }catch(error){console.error(error);return res.status(500).json({error:error?.message||'Permanent upload failed.'})}
+  }catch(error){console.error(error);return res.status(error.code==='RATE_LIMIT'?429:500).json({error:error?.message||'Permanent upload failed.'})}
 }

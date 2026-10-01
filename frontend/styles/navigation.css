@@ -18,10 +18,7 @@
   height:31px;
   flex-basis:31px;
 }
-#splitCreatorPage .sc-logo .splitBrandLogoV66,
-#splitPayPage .sc-logo .splitBrandLogoV66,
-#creatorDashboardPage .cdBrandV62 .splitBrandLogoV66,
-#tokensDirectoryPage .tdBrandV55 .splitBrandLogoV66{
+#creatorDashboardPage .cdBrandV62 .splitBrandLogoV66,#tokensDirectoryPage .tdBrandV55 .splitBrandLogoV66{
   width:28px;
   height:28px;
   flex-basis:28px;
@@ -37,7 +34,7 @@
   display:inline-flex!important;
   align-items:center;
   gap:6px;
-  color:#8d8d8d!important;
+  color:#999!important;
   border-color:#272727!important;
   background:#080808!important;
   white-space:nowrap;

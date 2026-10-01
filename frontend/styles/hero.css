@@ -16,7 +16,7 @@
 .heroCopyV22{position:relative;z-index:3;max-width:790px}
 .heroMetaV22{
   display:flex;align-items:center;gap:12px;
-  color:#747474;font-size:10px;font-weight:800;
+  color:#999;font-size:12px;font-weight:800;
   letter-spacing:.16em;text-transform:uppercase;
   margin-bottom:28px;
 }
@@ -35,7 +35,7 @@
   max-width:920px;
 }
 .hero.heroV22 h1 .mutedLine{
-  display:block;color:#737373;font-weight:820;
+  display:block;color:#999;font-weight:820;
 }
 .heroExplainV22{
   margin-top:28px;
@@ -44,7 +44,7 @@
   max-width:700px;
 }
 .heroExplainV22 p{
-  margin:0;color:#969696;font-size:16px;line-height:1.75;
+  margin:0;color:#999;font-size:16px;line-height:1.75;
 }
 .heroExplainV22 strong{color:#f1f1f1;font-weight:760}
 .heroActions{display:flex;align-items:center;gap:10px;margin-top:36px}
@@ -82,7 +82,7 @@
   display:flex;justify-content:space-between;align-items:center;z-index:5;
 }
 .flowTopV22 span{
-  color:#666;font-size:9px;letter-spacing:.16em;text-transform:uppercase;
+  color:#999;font-size:12px;letter-spacing:.16em;text-transform:uppercase;
 }
 .flowLiveV22{
   display:flex!important;align-items:center;gap:7px;
@@ -105,13 +105,13 @@
   z-index:5;
 }
 .flowRequestV22 small{
-  color:#000;font-size:8px;letter-spacing:.16em;text-transform:uppercase;
+  color:#000;font-size:12px;letter-spacing:.16em;text-transform:uppercase;
 }
 .flowRequestV22 strong{
   color:#000;font-size:28px;letter-spacing:-.06em;margin-top:7px;
 }
 .flowRequestV22 em{
-  color:#000;font-style:normal;font-size:9px;margin-top:5px;
+  color:#000;font-style:normal;font-size:12px;margin-top:5px;
 }
 .flowRingV22,.flowRingV22:before{
   position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);
@@ -138,9 +138,9 @@
 .flowPersonV22.p4{right:34px;bottom:74px}
 @keyframes flowFloatV22{0%,100%{transform:translateY(0)}50%{transform:translateY(-7px)}}
 .flowPersonHeadV22{display:flex;align-items:center;justify-content:space-between;gap:10px}
-.flowPersonHeadV22 strong{font-size:11px}
-.flowPersonHeadV22 span{font-size:8px;color:#8c8c8c;text-transform:uppercase;letter-spacing:.1em}
-.flowPersonV22 p{margin:7px 0 0;color:#666;font-size:9px}
+.flowPersonHeadV22 strong{font-size:12px}
+.flowPersonHeadV22 span{font-size:12px;color:#999;text-transform:uppercase;letter-spacing:.1em}
+.flowPersonV22 p{margin:7px 0 0;color:#999;font-size:12px}
 .flowLineV22{
   position:absolute;z-index:2;
   height:1px;
@@ -167,9 +167,9 @@
 .flowFooterV22{
   position:absolute;left:24px;right:24px;bottom:22px;
   display:flex;justify-content:space-between;gap:14px;align-items:center;
-  color:#5e5e5e;font-size:9px;letter-spacing:.12em;text-transform:uppercase;z-index:5;
+  color:#999;font-size:12px;letter-spacing:.12em;text-transform:uppercase;z-index:5;
 }
-.flowFooterV22 strong{color:#aaa;font-size:9px}
+.flowFooterV22 strong{color:#aaa;font-size:12px}
 @media(max-width:1050px){
   .hero.heroV22{grid-template-columns:1fr;gap:50px;padding-top:90px}
   .heroCopyV22{max-width:920px}
@@ -198,7 +198,7 @@
 .splitPreview,.splitCalculator{min-height:620px}
 .splitPreview{display:flex;flex-direction:column;padding:34px}
 .splitPreviewTop{display:flex;justify-content:space-between;align-items:flex-start;gap:20px}
-.livePill{display:inline-flex;align-items:center;gap:8px;border:1px solid #292929;border-radius:999px;padding:8px 11px;color:#aaa;font-size:10px;letter-spacing:.14em;text-transform:uppercase}
+.livePill{display:inline-flex;align-items:center;gap:8px;border:1px solid #292929;border-radius:999px;padding:8px 11px;color:#aaa;font-size:12px;letter-spacing:.14em;text-transform:uppercase}
 .livePill i{width:6px;height:6px;border-radius:50%;background:#fff;box-shadow:0 0 12px #fff}
 .splitPreview h3{font-size:clamp(32px,4vw,52px);margin:22px 0 8px;letter-spacing:-.07em}
 .splitTotalDisplay{font-size:clamp(58px,7vw,94px);line-height:.92;font-weight:950;letter-spacing:-.085em;margin:28px 0 12px;min-height:1em}
@@ -208,26 +208,26 @@
 .participantList{display:grid;grid-template-columns:minmax(0,1fr) auto auto;column-gap:24px;row-gap:0;margin:38px 0 0}
 .participant{display:grid;grid-column:1/-1;grid-template-columns:subgrid;align-items:center;padding:18px 0;border-top:1px solid #1f1f1f;font-size:14px}
 .participant .share{color:#aaa}
-.participant .status{font-weight:800;font-size:11px;letter-spacing:.08em;text-transform:uppercase}
-.participant .status.pending{color:#777}
+.participant .status{font-weight:800;font-size:12px;letter-spacing:.08em;text-transform:uppercase}
+.participant .status.pending{color:#999}
 .splitProgress{height:8px;background:#202020;border-radius:999px;overflow:hidden;margin-top:auto}
 .splitProgress i{display:block;height:100%;width:75%;background:#fff;border-radius:999px}
 .splitCollected{display:flex;justify-content:space-between;gap:15px;color:#aaa;font-size:13px;margin-top:15px}
 .splitCollected strong{color:#fff}
-.splitPreviewNote{color:#666;font-size:11px;line-height:1.5;margin:18px 0 0}
+.splitPreviewNote{color:#999;font-size:12px;line-height:1.5;margin:18px 0 0}
 .splitPreviewAction{margin-top:22px}
 .splitCalculator{padding:34px;display:flex;flex-direction:column}
 .splitCalculator h3{font-size:clamp(32px,4vw,48px);letter-spacing:-.07em;margin:18px 0 10px}
-.splitCalculator>p{color:#777;line-height:1.6;margin:0 0 28px}
+.splitCalculator>p{color:#999;line-height:1.6;margin:0 0 28px}
 .calcField{display:grid;gap:9px;margin-top:18px}
 .calcField label{font-size:12px;font-weight:800}
 .calcField input{width:100%;background:#050505;color:#fff;border:1px solid #303030;border-radius:14px;padding:17px 16px;font:inherit;font-size:16px;outline:none;transition:.2s}
 .calcField input:focus{border-color:#666;box-shadow:0 0 0 3px rgba(255,255,255,.04)}
 .calcDivider{height:1px;background:#242424;margin:28px 0}
 .eachPay{margin-top:auto;border-top:1px solid #242424;padding-top:28px}
-.eachPayLabel{color:#777;font-size:11px;letter-spacing:.16em;text-transform:uppercase}
+.eachPayLabel{color:#999;font-size:12px;letter-spacing:.16em;text-transform:uppercase}
 .eachPayValue{font-size:clamp(38px,4.5vw,58px);font-weight:950;letter-spacing:-.07em;margin-top:9px}
-.calcHint{color:#666;font-size:11px;margin-top:10px}
+.calcHint{color:#999;font-size:12px;margin-top:10px}
 .showcaseAccent{position:absolute;right:-80px;top:-80px;width:230px;height:230px;border:1px solid #222;border-radius:50%;pointer-events:none}
 .showcaseAccent:after{content:"";position:absolute;inset:25px;border:1px solid #1c1c1c;border-radius:50%}
 @media(max-width:900px){.splitShowcaseGrid{grid-template-columns:1fr}.splitPreview,.splitCalculator{min-height:auto}.splitPreview{min-height:580px}}
@@ -239,7 +239,7 @@
 .settlementMain{min-height:640px;padding:34px;display:flex;flex-direction:column}
 .settlementTop{display:flex;justify-content:space-between;gap:20px;align-items:flex-start}
 .settlementTitle{font-size:clamp(34px,4.7vw,62px);line-height:.96;letter-spacing:-.075em;margin:18px 0 10px}
-.settlementIntro{color:#838383;max-width:560px;line-height:1.65;font-size:14px}
+.settlementIntro{color:#999;max-width:560px;line-height:1.65;font-size:14px}
 .orbitStage{position:relative;min-height:510px;margin-top:34px;border:1px solid #202020;border-radius:30px;background:
 radial-gradient(circle at 50% 48%,rgba(255,255,255,.055),transparent 18%),
 radial-gradient(circle at 50% 50%,rgba(255,255,255,.018),transparent 58%),
@@ -260,7 +260,7 @@ background-size:42px 42px;mask-image:radial-gradient(circle at center,#000 28%,t
 radial-gradient(circle at 32% 26%,#fff 0%,#f0f0f0 10%,#a8a8a8 24%,#333 50%,#111 74%,#080808 100%);
 box-shadow:0 0 100px rgba(255,255,255,.09),inset -16px -20px 38px rgba(0,0,0,.55);font-size:23px;font-weight:950;letter-spacing:-.08em;color:#050505;z-index:6}
 .orbitCore:before{content:"";position:absolute;inset:-18px;border:1px solid rgba(255,255,255,.08);border-radius:50%;animation:corePulse 4.8s ease-in-out infinite}
-.orbitCore:after{content:"SETTLEMENT ROUTER";position:absolute;bottom:-48px;color:#6c6c6c;font-size:8px;letter-spacing:.24em;font-weight:800;white-space:nowrap}
+.orbitCore:after{content:"SETTLEMENT ROUTER";position:absolute;bottom:-48px;color:#999;font-size:12px;letter-spacing:.24em;font-weight:800;white-space:nowrap}
 @keyframes corePulse{0%,100%{transform:scale(.96);opacity:.28}50%{transform:scale(1.08);opacity:.75}}
 .networkNode{position:absolute;z-index:5;min-width:126px;padding:12px 14px;border-radius:18px;border:1px solid #2b2b2b;background:linear-gradient(180deg,rgba(18,18,18,.96),rgba(9,9,9,.96));box-shadow:0 18px 44px rgba(0,0,0,.36);backdrop-filter:blur(10px);animation:nodeFloat 6s ease-in-out infinite}
 .networkNode:nth-of-type(odd){animation-delay:-1.8s}
@@ -269,7 +269,7 @@ box-shadow:0 0 100px rgba(255,255,255,.09),inset -16px -20px 38px rgba(0,0,0,.55
 .networkNode .top{display:flex;align-items:center;gap:9px}
 .networkNode .dot{width:8px;height:8px;border-radius:50%;background:#a4a4a4;box-shadow:0 0 14px rgba(255,255,255,.18)}
 .networkNode strong{font-size:12px;letter-spacing:-.02em}
-.networkNode small{display:block;color:#626262;font-size:9px;letter-spacing:.11em;text-transform:uppercase;margin-top:5px}
+.networkNode small{display:block;color:#999;font-size:12px;letter-spacing:.11em;text-transform:uppercase;margin-top:5px}
 .networkNode.solana{left:8%;top:16%}
 .networkNode.ethereum{left:50%;top:7%;transform:translateX(-50%);animation-name:nodeFloatCenter}
 .networkNode.base{right:7%;top:17%}
@@ -310,20 +310,20 @@ box-shadow:0 0 100px rgba(255,255,255,.09),inset -16px -20px 38px rgba(0,0,0,.55
   58%{right:49.2%;bottom:49%;opacity:1}
   72%,100%{right:49.2%;bottom:49%;opacity:0}
 }
-.orbitCaption{position:absolute;left:50%;bottom:22px;transform:translateX(-50%);color:#555;font-size:9px;letter-spacing:.18em;text-transform:uppercase;z-index:3}
+.orbitCaption{position:absolute;left:50%;bottom:22px;transform:translateX(-50%);color:#999;font-size:12px;letter-spacing:.18em;text-transform:uppercase;z-index:3}
 .settlementStatus{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:22px}
 .settlementMetric{border-top:1px solid #222;padding-top:14px}
-.settlementMetric span{display:block;color:#686868;font-size:10px;text-transform:uppercase;letter-spacing:.14em}
+.settlementMetric span{display:block;color:#999;font-size:12px;text-transform:uppercase;letter-spacing:.14em}
 .settlementMetric strong{display:block;font-size:18px;margin-top:6px;letter-spacing:-.03em}
 .settlementSide{display:grid;gap:16px}
 .settlementCard{padding:28px;min-height:190px}
-.settlementCard .idx{font-size:10px;letter-spacing:.14em;color:#646464;text-transform:uppercase}
+.settlementCard .idx{font-size:12px;letter-spacing:.14em;color:#999;text-transform:uppercase}
 .settlementCard h3{font-size:26px;letter-spacing:-.05em;margin:20px 0 10px}
-.settlementCard p{color:#747474;line-height:1.6;margin:0;font-size:13px}
+.settlementCard p{color:#999;line-height:1.6;margin:0;font-size:13px}
 .requestPanel{margin-top:auto;border:1px solid #292929;border-radius:18px;padding:16px;background:#060606}
 .requestRow{display:grid;grid-template-columns:1fr auto;gap:12px;padding:10px 0;border-bottom:1px solid #1e1e1e;font-size:12px}
 .requestRow:last-child{border-bottom:0}
-.requestRow span{color:#737373}
+.requestRow span{color:#999}
 .requestRow strong{font-weight:800}
 @media(max-width:900px){
   .settlementGrid{grid-template-columns:1fr}
@@ -331,7 +331,7 @@ box-shadow:0 0 100px rgba(255,255,255,.09),inset -16px -20px 38px rgba(0,0,0,.55
   .orbitStage{min-height:460px}
 }
 @media(max-width:560px){
-  .orbitNode{min-width:88px;height:38px;padding:0 10px;font-size:9px}
+  .orbitNode{min-width:88px;height:38px;padding:0 10px;font-size:12px}
   .orbitTrack.inner{width:244px;height:244px;margin:-122px 0 0 -122px}
   .orbitTrack.outer{width:350px;height:350px;margin:-175px 0 0 -175px}
   .orbitTrack.inner .orbitAnchor:nth-child(1){transform:rotate(0deg) translateY(-122px)}
@@ -348,8 +348,8 @@ box-shadow:0 0 100px rgba(255,255,255,.09),inset -16px -20px 38px rgba(0,0,0,.55
   .orbitStage{min-height:600px}
   .orbitCore{width:112px;height:112px;font-size:20px}
   .networkNode{min-width:104px;padding:10px 11px;border-radius:15px}
-  .networkNode strong{font-size:10px}
-  .networkNode small{font-size:7px;letter-spacing:.08em}
+  .networkNode strong{font-size:12px}
+  .networkNode small{font-size:12px;letter-spacing:.08em}
   .networkNode.solana{left:4%;top:12%}
   .networkNode.ethereum{left:50%;top:4%}
   .networkNode.base{right:3%;top:13%}

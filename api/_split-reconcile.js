@@ -4,6 +4,7 @@ import {
 } from './_split-invite-utils.js';
 import { verifyPaymentTransaction, PaymentVerificationError } from './_payment-verify.js';
 import { reportError } from './_operations.js';
+import { acquireLease } from './_blob-store.js';
 
 async function mapLimit(items,limit,fn){
   const output=new Array(items.length);let cursor=0;
@@ -12,8 +13,13 @@ async function mapLimit(items,limit,fn){
 }
 
 export async function reconcileParticipant(meta,p){
-  if(p.status!=='submitted'||!p.txHash)return p;
+  if(process.env.SPLIT_STORAGE_MAINTENANCE==='true'||p.status!=='submitted'||!p.txHash)return p;
+  const release=await acquireLease(`operations/participant/${meta.splitId}/${p.id}`,180);
+  if(!release)return {...p,verificationBusy:true};
   try{
+    const current=await readParticipant(meta.splitId,p.id);
+    if(!current||current.status!=='submitted'||current.txHash!==p.txHash)return current||p;
+    p=current;
     const result=await verifyPaymentTransaction({meta,participant:p,txHash:p.txHash});
     if(result.confirmed){
       await claimVerifiedTransaction({network:meta.network,txHash:p.txHash,splitId:meta.splitId,participantId:p.id});
@@ -36,7 +42,7 @@ export async function reconcileParticipant(meta,p){
     }
     void reportError({event:'payment_verification_unavailable',route:'/api/reconcile-payments',status:503});
     return {...p,verificationUnavailable:true};
-  }
+  }finally{await release().catch(()=>{})}
 }
 export async function reconcileSplit(meta,limit=4){
   const participants=await listParticipants(meta.splitId,meta);

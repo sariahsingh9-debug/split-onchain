@@ -176,6 +176,8 @@ async function refreshLaunchServiceConfig(){
     if(!res.ok)throw new Error('Config unavailable');
     const data=await res.json();
     launchServiceConfig=data;
+    document.querySelectorAll('[data-launch-network-notice]').forEach(el=>{el.textContent=data.network==='solana-mainnet'?'Solana mainnet · wallet approval uses real SOL. Review the costs before signing.':'Solana devnet · test launches only. Devnet tokens have no real monetary value.'});
+    const directoryNetwork=document.getElementById('tdNetwork');if(directoryNetwork)directoryNetwork.textContent=data.network==='solana-mainnet'?'Solana mainnet':'Solana devnet';
     const ready=Boolean(data?.launchReady);
     if(badge){
       badge.classList.toggle('ready',ready);
@@ -874,12 +876,21 @@ const previewPeople=document.getElementById('previewPeople');
 const showcaseEach=document.getElementById('showcaseCalcEach');
 const previewShares=[...document.querySelectorAll('#groupPayShowcase .splitShare')];
 const previewCollected=document.getElementById('previewCollected');
-let showcaseTimer=null,showcasePaused=false;
+
 const showcaseMoney=n=>'$'+Number(n).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});
 function setShowcase(total,people){const safeTotal=Math.max(0,Number(total)||0),safePeople=Math.max(2,Math.min(50,Math.floor(Number(people)||2))),each=safeTotal/safePeople;previewTotal.textContent=showcaseMoney(safeTotal);previewPeople.textContent=safePeople;showcaseEach.textContent=showcaseMoney(each);previewShares.forEach((el,i)=>{el.textContent=i<safePeople?showcaseMoney(each):'—'});previewCollected.textContent=showcaseMoney(each*Math.min(3,safePeople))+' USDC · '+Math.min(3,safePeople)+' of '+safePeople+' paid'}
-function startShowcaseCounter(){clearInterval(showcaseTimer);showcasePaused=false;let value=300;setShowcase(value,4);showcaseTimer=setInterval(()=>{if(showcasePaused)return;value+=1;if(value>1200){showcasePaused=true;value=1200;setShowcase(value,4);setTimeout(()=>{value=300;showcasePaused=false;setShowcase(value,4)},5000);return}setShowcase(value,4)},5)}
-function calculatorChanged(){clearInterval(showcaseTimer);showcasePaused=true;setShowcase(showcaseTotal.value,showcasePeople.value)}
+function calculatorChanged(){
+  try{
+    const count=Number(showcasePeople.value);
+    const shares=SPLIT_AMOUNT.equal(showcaseTotal.value,count,6);
+    setShowcase(showcaseTotal.value,count);
+    showcaseEach.textContent=shares.every(x=>x===shares[0])?'$'+SPLIT_AMOUNT.display(shares[0]):'$'+SPLIT_AMOUNT.display(shares.at(-1))+'–$'+SPLIT_AMOUNT.display(shares[0]);
+    previewShares.forEach((el,i)=>{el.textContent=i<count?'$'+SPLIT_AMOUNT.display(shares[i]):'—';el.closest('.participant').hidden=i>=count});
+    document.getElementById('previewProgress').style.width=(Math.min(3,count)/count*100)+'%';
+    previewCollected.textContent='$'+SPLIT_AMOUNT.display(SPLIT_AMOUNT.decimal(shares.slice(0,Math.min(3,count)).reduce((n,v)=>n+SPLIT_AMOUNT.units(v,6),0n),6))+' USDC · '+Math.min(3,count)+' of '+count+' paid';
+    document.querySelector('#groupPayShowcase .calcHint').textContent='Exact shares · any remainder is allocated to the first participants';
+  }catch(error){showcaseEach.textContent='—';document.querySelector('#groupPayShowcase .calcHint').textContent=error.message}
+}
 showcaseTotal?.addEventListener('input',calculatorChanged);showcasePeople?.addEventListener('input',calculatorChanged);
-
-startShowcaseCounter();
-
+calculatorChanged();
+refreshLaunchServiceConfig();

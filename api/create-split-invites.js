@@ -7,6 +7,8 @@ import {
 import { writeCreatorSplitIndex } from './_creator-utils.js';
 import { decimalToUnits, unitsToDecimal, decimalsFor, PAYMENT_NETWORK_NAMES } from './_payment-config.js';
 import { inviteSubject, inviteHtml, sendInviteBatch } from './_split-email.js';
+import { requireDurableStorage, acquireLease } from './_blob-store.js';
+import { invitationEmailReady } from './_email-capabilities.js';
 
 function bodyOf(req){if(typeof req.body==='string')return JSON.parse(req.body||'{}');return req.body||{}}
 function addressLooksValid(network,value){
@@ -37,6 +39,7 @@ function safePublicParticipant(p){
 export default async function handler(req,res){
   res.setHeader('Cache-Control','no-store');
   if(req.method!=='POST')return res.status(405).json({success:false,error:'Method not allowed.'});
+  let release;
   try{
     const input=bodyOf(req);
     const name=cleanText(input.name,90);
@@ -46,6 +49,10 @@ export default async function handler(req,res){
     const payout=cleanText(input.payout,80);
     const incoming=Array.isArray(input.participants)?input.participants:[];
     const networkName=PAYMENT_NETWORK_NAMES[network];
+    const emailConfigured=invitationEmailReady();
+    const deliveryMode=input.deliveryMode||'link';
+    if(!['link','email'].includes(deliveryMode))return res.status(400).json({success:false,error:'Choose link sharing or email invitations.'});
+    if(deliveryMode==='email'&&!emailConfigured)return res.status(503).json({success:false,error:'Email invitations are unavailable. Choose Share links to create this SPLIT.'});
 
     if(!name)return res.status(400).json({success:false,error:'Split name is required.'});
     if(!networkName)return res.status(400).json({success:false,error:'Unsupported payment network.'});
@@ -59,6 +66,8 @@ export default async function handler(req,res){
 
     const baseShare=totalUnits/BigInt(incoming.length);
     const remainder=totalUnits%BigInt(incoming.length);
+    const largest=baseShare+(remainder?1n:0n);
+    if(largest>=2n**BigInt(network==='solana'?64:256))return res.status(400).json({success:false,error:'Each share must fit the selected network’s supported amount range.'});
     const total=unitsToDecimal(totalUnits,decimals);
     const splitId=requestId(input.clientRequestId);
     const normalized=incoming.map((p,index)=>{
@@ -73,10 +82,13 @@ export default async function handler(req,res){
     });
     for(let i=0;i<normalized.length;i++){
       if(!normalized[i].name)return res.status(400).json({success:false,error:`Participant ${i+1} needs a name.`});
-      if(!validEmail(normalized[i].email))return res.status(400).json({success:false,error:`${normalized[i].name} needs a valid email address.`});
+      if((deliveryMode==='email'||normalized[i].email)&&!validEmail(normalized[i].email))return res.status(400).json({success:false,error:`${normalized[i].name} needs a valid email address.`});
     }
-    if(new Set(normalized.map(p=>p.email)).size!==normalized.length)return res.status(400).json({success:false,error:'Each participant must use a different email address.'});
-    const emailConfigured=Boolean(process.env.SPLIT_EMAIL_FROM&&process.env.RESEND_API_KEY);
+    const emails=normalized.map(p=>p.email).filter(Boolean);
+    if(new Set(emails).size!==emails.length)return res.status(400).json({success:false,error:'Each participant must use a different email address.'});
+    await requireDurableStorage();
+    release=await acquireLease(`operations/create-split/${splitId}`,120);
+    if(!release)return res.status(409).json({success:false,error:'This SPLIT is being created. Please retry shortly with the same request.'});
 
     const requestFingerprint=fingerprint({
       name,totalUnits:totalUnits.toString(),network,asset,payout,
@@ -86,7 +98,7 @@ export default async function handler(req,res){
     let meta={
       v:2,splitId,name,total,totalUnits:totalUnits.toString(),splitMode:'equal',decimals,
       network,networkName,asset,payout,creatorWallet:payout,creatorFamily:network==='solana'?'solana':'evm',participantCount:normalized.length,requestFingerprint,
-      createdAtMs:now,createdAt:new Date(now).toISOString(),expiresAtMs:now+(30*24*60*60*1000),expiresAt:new Date(now+(30*24*60*60*1000)).toISOString()
+      deliveryMode,createdAtMs:now,createdAt:new Date(now).toISOString(),expiresAtMs:now+(30*24*60*60*1000),expiresAt:new Date(now+(30*24*60*60*1000)).toISOString()
     };
 
     // clientRequestId makes the operation safe to retry if the browser loses the
@@ -146,8 +158,8 @@ export default async function handler(req,res){
     }
 
     let batchError='';let deliveryStateWarning='';
-    if(!emailConfigured){
-      batchError='Email invitations are not enabled yet. Your SPLIT is ready — copy and share each participant payment link manually.';
+    if(deliveryMode==='link'){
+      batchError='';
     }else if(invites.some(x=>!x.emailSent)&&!meta.emailBatchAcceptedAt){
       const attemptedAt=Number(meta.emailBatchAttemptedAtMs||0);
       const retryWindowMs=23*60*60*1000;
@@ -208,16 +220,16 @@ export default async function handler(req,res){
 
     return res.status(200).json({
       success:true,splitId,adminToken,storageEnabled:true,idempotent:Boolean(existingMeta),
-      emailBatchError:batchError,deliveryStateWarning,
+      emailBatchError:batchError,deliveryStateWarning,deliveryMode,emailReady:emailConfigured,
       invites:invites.map(safePublicParticipant)
     });
   }catch(error){
     console.error(error);
     const raw=String(error?.message||'');
-    const status=/storage|blob|redis/i.test(raw)?503:400;
+    const status=error.code==='STORAGE_NOT_DURABLE'||/storage|blob|redis/i.test(raw)?503:400;
     const safe=/not configured|api key|secret|redis_url|private_key/i.test(raw)
       ?'This SPLIT feature is temporarily unavailable. Please try again shortly.'
       :(raw||'Could not create SPLIT invitations.');
     return res.status(status).json({success:false,error:safe});
-  }
+  }finally{await release?.().catch(()=>{})}
 }
