@@ -876,10 +876,33 @@ const previewPeople=document.getElementById('previewPeople');
 const showcaseEach=document.getElementById('showcaseCalcEach');
 const previewShares=[...document.querySelectorAll('#groupPayShowcase .splitShare')];
 const previewCollected=document.getElementById('previewCollected');
+let showcaseFrame=null,showcasePause=null,showcaseEdited=false;
+const showcaseReducedMotion=matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+function stopShowcaseCounter(){
+  if(showcaseFrame!==null)cancelAnimationFrame(showcaseFrame);
+  if(showcasePause!==null)clearTimeout(showcasePause);
+  showcaseFrame=null;showcasePause=null;
+}
+function startShowcaseCounter(){
+  stopShowcaseCounter();
+  if(showcaseEdited||showcaseReducedMotion||document.hidden)return;
+  const started=performance.now();
+  document.querySelector('#groupPayShowcase .calcHint').textContent='Animated example · edit the values to calculate your own split';
+  setShowcase(300,4);
+  function tick(now){
+    const progress=Math.min(1,(now-started)/4500);
+    setShowcase(300+Math.round(900*progress),4);
+    if(progress<1)showcaseFrame=requestAnimationFrame(tick);
+    else{showcaseFrame=null;showcasePause=setTimeout(startShowcaseCounter,5000)}
+  }
+  showcaseFrame=requestAnimationFrame(tick);
+}
 
 const showcaseMoney=n=>'$'+Number(n).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});
 function setShowcase(total,people){const safeTotal=Math.max(0,Number(total)||0),safePeople=Math.max(2,Math.min(50,Math.floor(Number(people)||2))),each=safeTotal/safePeople;previewTotal.textContent=showcaseMoney(safeTotal);previewPeople.textContent=safePeople;showcaseEach.textContent=showcaseMoney(each);previewShares.forEach((el,i)=>{el.textContent=i<safePeople?showcaseMoney(each):'—'});previewCollected.textContent=showcaseMoney(each*Math.min(3,safePeople))+' USDC · '+Math.min(3,safePeople)+' of '+safePeople+' paid'}
 function calculatorChanged(){
+  stopShowcaseCounter();showcaseEdited=true;
   try{
     const count=Number(showcasePeople.value);
     const shares=SPLIT_AMOUNT.equal(showcaseTotal.value,count,6);
@@ -893,4 +916,7 @@ function calculatorChanged(){
 }
 showcaseTotal?.addEventListener('input',calculatorChanged);showcasePeople?.addEventListener('input',calculatorChanged);
 calculatorChanged();
+showcaseEdited=false;
+startShowcaseCounter();
+document.addEventListener('visibilitychange',()=>{if(document.hidden)stopShowcaseCounter();else startShowcaseCounter()});
 refreshLaunchServiceConfig();

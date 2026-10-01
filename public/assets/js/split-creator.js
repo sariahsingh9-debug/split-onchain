@@ -49,6 +49,9 @@
   let emailReady=false;
   let paymentCreationReady=false;
   let createSplitRequestId='';
+  let creatorCounterFrame=null,creatorCounterPause=null,creatorCounterTarget=null;
+  let creatorCounterDemo=true;
+  const creatorReducedMotion=matchMedia('(prefers-reduced-motion: reduce)').matches;
 
   function updateCreatorProgress(step){
     document.querySelectorAll('.sc-progressV48 span').forEach((node,index)=>{
@@ -89,6 +92,7 @@
     if(shell && walletModal && walletModal.parentElement!==shell) shell.appendChild(walletModal);
     if(home) home.style.display='none';
     if(creator) creator.style.display='block';
+    startCreatorCounter();
     renderRecentSplits();refreshCreationConfig();
     window.scrollTo({top:0,behavior:'instant'});
     history.replaceState(null,'','#splitCreator');
@@ -98,6 +102,7 @@
     const home=el('app');
     const creator=el('splitCreatorPage');
     if(creator) creator.style.display='none';
+    stopCreatorCounter();
     if(home) home.style.display='block';
     history.replaceState(null,'',location.pathname+location.search);
     window.scrollTo({top:0,behavior:'instant'});
@@ -232,6 +237,29 @@
     el('scSumRecipient').textContent=validAddress(r)?r.slice(0,8)+'…'+r.slice(-6):(payoutMode==='manual'?'Enter address':'Connect wallet');
   }
 
+  function stopCreatorCounter(){
+    if(creatorCounterFrame!==null)cancelAnimationFrame(creatorCounterFrame);
+    if(creatorCounterPause!==null)clearTimeout(creatorCounterPause);
+    creatorCounterFrame=null;creatorCounterPause=null;
+    if(creatorCounterTarget)el('scSumEach').textContent=creatorCounterTarget.text;
+  }
+  function startCreatorCounter(){
+    stopCreatorCounter();
+    const target=creatorCounterTarget;
+    if(!target?.units||!creatorCounterDemo||creatorReducedMotion||document.hidden||el('splitCreatorPage').style.display!=='block')return;
+    const started=performance.now(),unit=10n**BigInt(target.decimals);
+    function tick(now){
+      const progress=Math.min(1,(now-started)/3000),eased=1-Math.pow(1-progress,3);
+      let units=target.units*BigInt(Math.round(eased*1000000))/1000000n;
+      if(progress<1&&target.units>=unit)units=units/unit*unit;
+      el('scSumEach').textContent=progress===1?target.text:SPLIT_AMOUNT.display(SPLIT_AMOUNT.decimal(units,target.decimals))+' '+target.symbol;
+      if(progress<1)creatorCounterFrame=requestAnimationFrame(tick);
+      else{creatorCounterFrame=null;creatorCounterPause=setTimeout(startCreatorCounter,20000)}
+    }
+    creatorCounterFrame=requestAnimationFrame(tick);
+  }
+  function finishCreatorCounter(){creatorCounterDemo=false;stopCreatorCounter()}
+
   function calculate(){
     const people=[...document.querySelectorAll('#scPeople .sc-person')],count=people.length,sym=asset().symbol;
     const decimals=sym==='SOL'?9:['ETH','POL','AVAX','BNB'].includes(sym)||selectedNetwork==='bnb'?18:6;
@@ -241,10 +269,12 @@
     el('scNetworkBadge').textContent=net().name;el('scAssetBadge').textContent=sym;
     el('scSumTotal').textContent=shares.length?format(SPLIT_AMOUNT.decimal(SPLIT_AMOUNT.units(el('scTotal').value,decimals),decimals)):'—';el('scSumPeople').textContent=count;
     const each=shares.length?(shares.every(x=>x===shares[0])?format(shares[0]):format(shares.at(-1))+' – '+format(shares[0])):'—';
+    creatorCounterTarget={text:each,units:shares.length&&shares.every(x=>x===shares[0])?SPLIT_AMOUNT.units(shares[0],decimals):0n,decimals,symbol:sym};
     el('scSumEach').textContent=each;el('scParticipantAmount').textContent=shares.length?format(shares[0]):'—';
     people.forEach((row,i)=>{row.querySelector('.sc-person-share').value=shares[i]?format(shares[i]):'—';row.querySelector('.sc-person-name').setAttribute('aria-label','Participant '+(i+1)+' name');row.querySelector('.sc-person-email').setAttribute('aria-label','Participant '+(i+1)+' email');row.querySelector('.sc-person-share').setAttribute('aria-label','Participant '+(i+1)+' share');row.querySelector('.sc-remove').disabled=count<=2});
     el('scAddPerson').disabled=count>=50;
     updateRecipient();
+    startCreatorCounter();
   }
 
   function setDelivery(mode){
@@ -654,5 +684,9 @@
   });
 
   setDelivery('link');refreshCreationConfig();
+  el('splitCreatorPage').addEventListener('input',finishCreatorCounter,{capture:true});
+  el('splitCreatorPage').addEventListener('focusin',e=>{if(e.target.matches('input'))finishCreatorCounter()});
+  el('scCreateSplit').addEventListener('click',finishCreatorCounter,{capture:true});
+  document.addEventListener('visibilitychange',()=>{if(document.hidden)stopCreatorCounter();else startCreatorCounter()});
   if(location.hash==='#splitCreator') showCreator();
 })();
