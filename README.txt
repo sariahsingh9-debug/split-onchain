@@ -1,3 +1,17 @@
+SPLIT — v75 PRODUCTION POLISH
+
+Production changes:
+- Existing Render site stays in place; no new website or URL required.
+- Group payments no longer fail just because transactional email is not configured.
+- Manual participant payment links remain available when email is offline or unconfigured.
+- Public health checks separate core payment/launch readiness from optional email delivery.
+- Added an in-app guide explaining SPLIT Payments vs SPLIT Launch.
+- Added live core-system status, offline feedback, accessible focus states and safer user-facing errors.
+- Added stronger HTTP security headers and request IDs without changing wallet flows.
+- Updated Trust, Terms and Privacy references from the old Netlify storage model to Render Key Value.
+- Preserved fixed launch routing: Creator 35% / Treasury 20% / Reserve 35% / SPLIT Protocol 10%.
+- Preserved the minimum $5 USDC-equivalent first buy.
+
 SPLIT — v73 WALLET CONNECTION FIX
 
 Wallet connection changes:
