@@ -11,7 +11,7 @@ const TRANSFER_TOPIC='0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4d
 async function evmRpcCall(url,method,params){
   let response;
   try{
-    response=await fetch(url,{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({jsonrpc:'2.0',id:1,method,params})});
+    response=await fetch(url,{method:'POST',signal:AbortSignal.timeout(10000),headers:{'content-type':'application/json'},body:JSON.stringify({jsonrpc:'2.0',id:1,method,params})});
   }catch{throw new PaymentVerificationError('The blockchain RPC is temporarily unavailable.');}
   const body=await response.json().catch(()=>({}));
   if(!response.ok||body.error)throw new PaymentVerificationError(body?.error?.message||'The blockchain RPC is temporarily unavailable.');
@@ -34,7 +34,7 @@ function ensureNotPreexisting(blockTimeSeconds,requestedMs){
 
 async function verifySolana(meta,participant,payload,signature){
   const rpc=process.env.PAYMENT_SOLANA_RPC_URL||'https://api.mainnet-beta.solana.com';
-  const connection=new Connection(rpc,'confirmed');
+  const connection=new Connection(rpc,{commitment:'confirmed',fetch:(url,options)=>fetch(url,{...options,signal:AbortSignal.timeout(10000)}),disableRetryOnRateLimit:true});
   let statuses;
   try{statuses=await connection.getSignatureStatuses([signature],{searchTransactionHistory:true})}catch{throw new PaymentVerificationError('Solana is temporarily unavailable.');}
   const status=statuses?.value?.[0];

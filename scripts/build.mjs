@@ -1,0 +1,16 @@
+import fs from 'node:fs';
+import path from 'node:path';
+import {fileURLToPath} from 'node:url';
+import postcss from 'postcss';
+import cssnano from 'cssnano';
+const root=path.dirname(path.dirname(fileURLToPath(import.meta.url)));
+let html=fs.readFileSync(path.join(root,'frontend/index.html'),'utf8');
+html=html.replace(/<!-- component:([a-z-]+) -->/g,(_,name)=>fs.readFileSync(path.join(root,'frontend/components',name+'.html'),'utf8'));
+if(/component:/.test(html))throw new Error('Unresolved frontend component.');
+fs.mkdirSync(path.join(root,'public/assets'),{recursive:true});
+const manifest=JSON.parse(fs.readFileSync(path.join(root,'frontend/styles/manifest.json'),'utf8'));
+const css=manifest.map(name=>fs.readFileSync(path.join(root,'frontend/styles',name),'utf8')).join('\n');
+const output=await postcss([cssnano({preset:['default',{normalizeUrl:false}]})]).process(css,{from:undefined,map:false});
+fs.writeFileSync(path.join(root,'public/assets/site.css'),output.css);
+fs.writeFileSync(path.join(root,'public/index.html'),html);
+console.log('SPLIT frontend built from five page components and shared assets.');

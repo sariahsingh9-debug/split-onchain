@@ -53,7 +53,7 @@ export default async function handler(req,res){
     const masterSecret=process.env.SPLIT_ROUTER_MASTER_SECRET;const protocolRecipient=process.env.SPLIT_PROTOCOL_TREASURY;const liquidityRecipient=(process.env.SPLIT_REVENUE_RESERVE_TREASURY||process.env.SPLIT_LIQUIDITY_TREASURY);
     if(!masterSecret||masterSecret.length<32)return res.status(503).json({success:false,error:'SPLIT routing is not configured.'});
     if(!validSolanaAddress(protocolRecipient)||!validSolanaAddress(liquidityRecipient))return res.status(503).json({success:false,error:'SPLIT routing treasury addresses are not configured.'});
-    try{await list({prefix:'launch-health/',limit:1})}catch{return res.status(503).json({success:false,error:'Netlify Blobs storage is unavailable. Redeploy through Netlify so launch records can persist.'})}
+    try{await list({prefix:'launch-health/',limit:1})}catch{return res.status(503).json({success:false,error:'Launch storage is temporarily unavailable. Please try again shortly.'})}
 
     const routing=config.routing||{};
     const creatorBps=FIXED_ROUTING.creatorBps;
@@ -72,7 +72,7 @@ export default async function handler(req,res){
     const payload=buildCreateLaunchPayload(input);
     const metaplex=await fetchWithRetry('https://api.metaplex.com/v1/launches/create',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify(payload)});
     const out=await metaplex.json().catch(()=>({}));
-    if(!metaplex.ok||!out?.success)return res.status(metaplex.status||502).json({success:false,error:out?.error?.message||out?.error||'Metaplex could not build the launch.'});
+    if(!metaplex.ok||!out?.success)return res.status(metaplex.ok?502:metaplex.status).json({success:false,error:out?.error?.message||out?.error||'Metaplex could not build the launch.'});
 
     const routingPayload={
       v:2,routingId,network,feeWallet:feeWallet.publicKey.toBase58(),creatorWallet:wallet,

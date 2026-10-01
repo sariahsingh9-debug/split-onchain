@@ -32,7 +32,6 @@ window.addEventListener('online',()=>toast('Back online','SPLIT can reconnect to
 const friendlyRules=[
   [/SPLIT_EMAIL_FROM is not configured\.?/gi,'Email invitations are unavailable right now. Create the SPLIT and share the participant links manually.'],
   [/RESEND_API_KEY is not configured\.?/gi,'Email invitations are unavailable right now. Create the SPLIT and share the participant links manually.'],
-  [/Netlify Blobs must be available before sending payment invitations\.?/gi,'Secure payment storage is temporarily unavailable. Please try again shortly.'],
   [/\b(?:SPLIT_[A-Z0-9_]+|REDIS_URL|SOLANA_RPC_URL|PAYMENT_SOLANA_RPC_URL|IRYS_SOLANA_PRIVATE_KEY|CRON_SECRET)\b\s+is not configured\.?/gi,'This feature is temporarily unavailable. Please try again shortly.']
 ];
 function makeFriendly(value){let out=String(value||'');for(const [re,replacement] of friendlyRules)out=out.replace(re,replacement);return out}

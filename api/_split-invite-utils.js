@@ -43,8 +43,8 @@ function normalizedOrigin(candidate){
 export function baseUrl(){
   const explicit=normalizedOrigin(process.env.APP_BASE_URL);
   if(explicit)return explicit;
-  const netlify=normalizedOrigin(process.env.URL);
-  if(netlify)return netlify;
+  const render=normalizedOrigin(process.env.RENDER_EXTERNAL_URL);
+  if(render)return render;
   throw new Error('APP_BASE_URL is not configured. Set the public production origin before sending invitations.');
 }
 
@@ -66,6 +66,19 @@ export function emailIndexPath(emailId){
 }
 export async function writePendingPayment(record){
   return writePrivateJson(pendingPaymentPath(record.splitId,record.participantId),record);
+}
+// The submitted participant and its recovery index must commit together.
+export async function saveSubmittedPayment(meta,participant){
+  const {putMany}=await import('./_blob-store.js');
+  const pending={splitId:meta.splitId,participantId:participant.id,network:meta.network,txHash:participant.txHash,createdAt:participant.submittedAt};
+  let recordKey=participantPath(meta.splitId,participant.id),record=participant;
+  if(meta.storageVersion===1){
+    record=await readPrivateJson(splitPath(meta.splitId));
+    if(!record)throw new Error('SPLIT storage record is unavailable.');
+    record.participants=record.participants.map(p=>p.id===participant.id?participant:p);
+    recordKey=splitPath(meta.splitId);
+  }
+  await putMany([[recordKey,JSON.stringify(record)],[pendingPaymentPath(meta.splitId,participant.id),JSON.stringify(pending)]]);
 }
 export async function removePendingPayment(splitId,participantId){
   const {del}=await import('./_blob-store.js');

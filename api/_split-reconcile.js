@@ -3,6 +3,7 @@ import {
   removePendingPayment
 } from './_split-invite-utils.js';
 import { verifyPaymentTransaction, PaymentVerificationError } from './_payment-verify.js';
+import { reportError } from './_operations.js';
 
 async function mapLimit(items,limit,fn){
   const output=new Array(items.length);let cursor=0;
@@ -17,7 +18,7 @@ export async function reconcileParticipant(meta,p){
     if(result.confirmed){
       await claimVerifiedTransaction({network:meta.network,txHash:p.txHash,splitId:meta.splitId,participantId:p.id});
       const latest=await readParticipant(meta.splitId,p.id)||p;
-      if(latest.txHash&&latest.txHash!==p.txHash)return latest;
+      if(latest.status==='confirmed'||(latest.txHash&&latest.txHash!==p.txHash))return latest;
       const updated={...latest,status:'confirmed',confirmedAt:new Date().toISOString(),rejectionReason:'',rejectedAt:''};
       await saveParticipant(meta.splitId,updated,meta);
       await removePendingPayment(meta.splitId,p.id);
@@ -27,13 +28,14 @@ export async function reconcileParticipant(meta,p){
   }catch(error){
     if(error instanceof PaymentVerificationError&&error.reject){
       const latest=await readParticipant(meta.splitId,p.id)||p;
-      if(latest.txHash&&latest.txHash!==p.txHash)return latest;
+      if(latest.status==='confirmed'||(latest.txHash&&latest.txHash!==p.txHash))return latest;
       const updated={...latest,status:'rejected',rejectionReason:error.message,rejectedAt:new Date().toISOString()};
       await saveParticipant(meta.splitId,updated,meta);
       await removePendingPayment(meta.splitId,p.id);
       return updated;
     }
-    return p;
+    void reportError({event:'payment_verification_unavailable',route:'/api/reconcile-payments',status:503});
+    return {...p,verificationUnavailable:true};
   }
 }
 export async function reconcileSplit(meta,limit=4){

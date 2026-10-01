@@ -1,14 +1,15 @@
 {
   "name": "split-onchain",
   "private": true,
-  "version": "75.0.0",
+  "version": "76.0.0",
   "type": "module",
   "engines": {
     "node": "20.x"
   },
   "scripts": {
-    "build": "node scripts/netlify-build.mjs",
-    "audit": "node scripts/netlify-audit.mjs",
+    "build": "node scripts/build.mjs",
+    "audit": "node scripts/audit.mjs",
+    "test": "node --test tests/*.test.mjs",
     "start": "node server.mjs",
     "render:reconcile": "node scripts/reconcile-render.mjs"
   },
@@ -16,13 +17,18 @@
     "@irys/upload": "0.0.15",
     "@irys/upload-solana": "0.1.8",
     "@metaplex-foundation/genesis": "0.43.1",
-    "@netlify/blobs": "11.1.1",
-    "@solana/web3.js": "1.99.0",
     "@solana/spl-token": "0.4.15",
+    "@solana/web3.js": "1.99.0",
     "bs58": "6.0.0",
     "ethers": "6.17.0",
-    "tweetnacl": "1.0.3",
     "express": "4.21.2",
-    "ioredis": "5.4.2"
+    "ioredis": "5.4.2",
+    "tweetnacl": "1.0.3",
+    "cssnano": "^7.1.2",
+    "postcss": "^8.5.6"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.55.1",
+    "parse5": "^7.3.0"
   }
 }

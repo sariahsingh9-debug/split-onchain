@@ -3,6 +3,7 @@ import path from 'node:path';
 import fs from 'node:fs';
 import crypto from 'node:crypto';
 import { fileURLToPath } from 'node:url';
+import {reportError} from './api/_operations.js';
 
 const __dirname=path.dirname(fileURLToPath(import.meta.url));
 const app=express();
@@ -10,13 +11,7 @@ const port=Number(process.env.PORT||10000);
 const publicDir=path.join(__dirname,'public');
 const indexPath=path.join(publicDir,'index.html');
 
-function productionIndex(){
-  const raw=fs.readFileSync(indexPath,'utf8');
-  const favicon='<link rel="icon" href="/favicon.ico?v=split-v76" sizes="any"><link rel="icon" type="image/png" sizes="64x64" href="/favicon.png?v=split-v76"><link rel="shortcut icon" href="/favicon.ico?v=split-v76">';
-  const withFavicon=raw.includes('/favicon.png')?raw:raw.replace('</head>',favicon+'</head>');
-  const withCss=withFavicon.includes('/split-production.css')?withFavicon:withFavicon.replace('</head>','<link rel="stylesheet" href="/split-production.css"></head>');
-  return withCss.includes('/split-production.js')?withCss:withCss.replace('</body>','<script defer src="/split-production.js"></script></body>');
-}
+function productionIndex(){return fs.readFileSync(indexPath,'utf8')}
 let indexHtml=productionIndex();
 
 app.disable('x-powered-by');
@@ -33,7 +28,10 @@ app.use((req,res,next)=>{
   const proto=String(req.headers['x-forwarded-proto']||'').toLowerCase();
   if(proto==='https')res.setHeader('Strict-Transport-Security','max-age=31536000; includeSubDomains');
   if(req.path.startsWith('/api/'))res.setHeader('Cache-Control','no-store');
-  res.on('finish',()=>{if(res.statusCode>=500)console.error('SPLIT request failed',{requestId,method:req.method,path:req.path,status:res.statusCode})});
+  res.on('finish',()=>{
+    const critical=['/api/create-launch','/api/register-launch','/api/creator-claim-revenue'];
+    if((res.statusCode>=500&&req.path!=='/api/health')||(critical.includes(req.path)&&res.statusCode>=400&&!([400,401,402,403,405,409,429].includes(res.statusCode))))void reportError({event:'request_failed',requestId,route:req.path,status:res.statusCode});
+  });
   next();
 });
 
@@ -48,18 +46,18 @@ const apiNames=new Set([
   'health','launch-preflight','public-launches','reconcile-payments',
   'record-split-payment','register-launch','resend-split-invite',
   'resend-webhook','solana-signature-status','split-status',
-  'upload-media','verify-split-invite'
+  'upload-media','verify-split-invite','operations-monitor','client-error'
 ]);
 
 app.all('/api/:name',async(req,res)=>{
   try{
     const name=String(req.params.name||'');
     if(!apiNames.has(name))return res.status(404).json({success:false,error:'API route not found.'});
-    req.waitUntil=(promise)=>Promise.resolve(promise).catch(error=>console.error('Background task failed:',error));
+    req.waitUntil=(promise)=>Promise.resolve(promise).catch(()=>reportError({event:'background_task_failed',route:req.path,requestId:req.requestId,status:500}));
     const mod=await import(`./api/${name}.js`);
     await mod.default(req,res);
   }catch(error){
-    console.error('SPLIT API error:',{requestId:req.requestId,error:error?.message||error});
+    console.error(JSON.stringify({level:'error',event:'api_exception',requestId:req.requestId,route:req.path}));
     if(!res.headersSent)res.status(500).json({success:false,error:'SPLIT could not complete that request. Please try again.'});
   }
 });
@@ -76,12 +74,24 @@ app.use(express.static(publicDir,{
   index:false,
   maxAge:'1h'
 }));
+app.use('/assets',(req,res)=>res.status(404).send('Asset not found.'));
+
+app.use((error,req,res,next)=>{
+  if(res.headersSent)return next(error);
+  const status=error?.type==='entity.too.large'?413:error?.status===400?400:500;
+  res.status(status).json({success:false,error:status===413?'Request is too large.':'SPLIT could not complete that request.',requestId:req.requestId});
+});
+
+app.get('/healthz',(req,res)=>res.json({ok:true,service:'split-onchain',version:'76.0.0'}));
 
 app.get('*',(req,res)=>{
   res.setHeader('Cache-Control','no-cache');
   res.type('html').send(indexHtml);
 });
 
-app.listen(port,'0.0.0.0',()=>{
+const server=app.listen(port,'0.0.0.0',()=>{
   console.log(`SPLIT listening on port ${port}`);
 });
+process.on('unhandledRejection',()=>{void reportError({event:'unhandled_rejection',status:500})});
+process.on('uncaughtException',async()=>{await reportError({event:'uncaught_exception',status:500});process.exit(1)});
+process.on('SIGTERM',()=>server.close(()=>process.exit(0)));

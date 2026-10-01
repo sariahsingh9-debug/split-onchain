@@ -1,4 +1,5 @@
-import { verifyPayload, readSplitMeta, readParticipant, listParticipants, saveParticipant, assertInviteMatchesStorage, writePendingPayment } from './_split-invite-utils.js';
+import { verifyPayload, readSplitMeta, readParticipant, listParticipants, saveSubmittedPayment, assertInviteMatchesStorage } from './_split-invite-utils.js';
+import { reportError } from './_operations.js';
 import { reconcileParticipant } from './_split-reconcile.js';
 function bodyOf(req){if(typeof req.body==='string')return JSON.parse(req.body||'{}');return req.body||{}}
 function validHash(network,value){const s=String(value||'').trim();return network==='solana'?/^[1-9A-HJ-NP-Za-km-z]{64,100}$/.test(s):/^0x[a-fA-F0-9]{64}$/.test(s)}
@@ -36,14 +37,9 @@ export default async function handler(req,res){
     if(reused)return res.status(409).json({success:false,error:'This transaction is already attached to another participant in this SPLIT.'});
 
     const updated={...participant,status:'submitted',txHash:signature,payer:payerAddress,submittedAt:new Date().toISOString(),rejectionReason:'',rejectedAt:''};
-    await saveParticipant(meta.splitId,updated,meta);
-    try{
-      await writePendingPayment({
-        splitId:meta.splitId,participantId:participant.id,network:meta.network,txHash:signature,
-        createdAt:new Date().toISOString()
-      });
-    }catch(error){
-      console.warn('Payment saved but background reconciliation index could not be written:',error?.message||error);
+    try{await saveSubmittedPayment(meta,updated)}catch{
+      void reportError({event:'payment_recovery_save_failed',route:'/api/record-split-payment',status:503,requestId:req.requestId});
+      return res.status(503).json({success:false,persisted:false,error:'Payment tracking could not be saved. Keep your transaction reference and try again.'});
     }
     let final=updated;
     try{final=await reconcileParticipant(meta,updated)}catch{}

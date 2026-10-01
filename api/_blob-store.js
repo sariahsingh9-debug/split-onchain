@@ -1,98 +1,47 @@
-let redisClientPromise=null;
+import crypto from 'node:crypto';
 
-async function redisClient(){
-  if(!process.env.REDIS_URL)return null;
-  if(!redisClientPromise){
-    redisClientPromise=import('ioredis').then(({default:Redis})=>{
-      const client=new Redis(process.env.REDIS_URL,{
-        maxRetriesPerRequest:2,
-        enableReadyCheck:true,
-        lazyConnect:true
-      });
-      client.on('error',error=>console.error('SPLIT storage error:',error?.message||error));
-      return client.connect().catch(error=>{
-        redisClientPromise=null;
-        throw error;
-      }).then(()=>client);
+let clientPromise;
+export async function redisClient(){
+  if(!process.env.REDIS_URL)throw new Error('Persistent storage is not configured.');
+  if(!clientPromise){
+    clientPromise=import('ioredis').then(async({default:Redis})=>{
+      const client=new Redis(process.env.REDIS_URL,{maxRetriesPerRequest:2,lazyConnect:true,connectTimeout:5000,commandTimeout:10000});
+      client.on('error',()=>console.error(JSON.stringify({level:'error',event:'storage_connection_error'})));
+      try{await client.connect();return client}catch(error){client.disconnect();clientPromise=null;throw error}
     });
   }
-  return redisClientPromise;
+  return clientPromise;
 }
-
-async function netlifyStore(){
-  const {getStore}=await import('@netlify/blobs');
-  return getStore('split-data');
-}
-
+export async function closeStorage(){if(clientPromise){const client=await clientPromise;client.disconnect();clientPromise=null}}
 export async function put(pathname,body,options={}){
-  const key=String(pathname);
-  const value=typeof body==='string'?body:String(body??'');
-  const redis=await redisClient();
-  if(redis){
-    if(options?.allowOverwrite===false){
-      const ok=await redis.set(key,value,'NX');
-      if(ok!=='OK'){
-        const error=new Error('Blob already exists.');
-        error.code='BLOB_ALREADY_EXISTS';
-        throw error;
-      }
-    }else{
-      await redis.set(key,value);
-    }
-    return {pathname:key,etag:''};
-  }
-
-  const store=await netlifyStore();
-  const onlyIfNew=options?.allowOverwrite===false;
-  const result=await store.set(key,value,{...(onlyIfNew?{onlyIfNew:true}:{})});
-  if(onlyIfNew&&!result?.modified){
-    const error=new Error('Blob already exists.');
-    error.code='BLOB_ALREADY_EXISTS';
-    throw error;
-  }
-  return {pathname:key,etag:result?.etag||''};
+  const client=await redisClient();const key=String(pathname),value=String(body??'');
+  const args=[key,value];
+  if(options.ttlSeconds)args.push('EX',Math.max(1,Math.ceil(options.ttlSeconds)));
+  if(options.allowOverwrite===false)args.push('NX');
+  const result=await client.set(...args);
+  if(result!== 'OK'){const error=new Error('Record already exists.');error.code='BLOB_ALREADY_EXISTS';throw error}
+  return {pathname:key,etag:''};
 }
-
 export async function get(pathname){
-  const key=String(pathname);
-  const redis=await redisClient();
-  if(redis){
-    const value=await redis.get(key);
-    if(value===null)return null;
-    return {pathname:key,stream:new Response(value).body};
-  }
-
-  const store=await netlifyStore();
-  const value=await store.get(key,{type:'text',consistency:'strong'});
-  if(value===null||value===undefined)return null;
-  return {pathname:key,stream:new Response(String(value)).body};
+  const value=await (await redisClient()).get(String(pathname));
+  return value===null?null:{pathname:String(pathname),stream:new Response(value).body};
 }
-
-export async function del(pathname){
-  const key=String(pathname);
-  const redis=await redisClient();
-  if(redis){await redis.del(key);return}
-  const store=await netlifyStore();
-  await store.delete(key);
+export async function del(pathname){await (await redisClient()).del(String(pathname))}
+export async function putMany(entries){
+  const client=await redisClient();const transaction=client.multi();
+  for(const [key,value] of entries)transaction.set(String(key),String(value));
+  const results=await transaction.exec();
+  if(!results||results.some(([error])=>error))throw new Error('Could not save the payment and recovery record.');
 }
-
-export async function list({prefix='',limit=100}={}){
-  const redis=await redisClient();
-  if(redis){
-    const pattern=String(prefix||'')+'*';
-    let cursor='0';
-    const keys=[];
-    do{
-      const [next,batch]=await redis.scan(cursor,'MATCH',pattern,'COUNT',Math.max(100,Number(limit)||100));
-      cursor=next;
-      keys.push(...batch);
-      if(keys.length>=Number(limit||100))break;
-    }while(cursor!=='0');
-    return {blobs:keys.slice(0,Number(limit||100)).map(key=>({pathname:key,key,etag:''})),hasMore:cursor!=='0',cursor:cursor!=='0'?cursor:null};
-  }
-
-  const store=await netlifyStore();
-  const result=await store.list({prefix:String(prefix||'')});
-  const blobs=(result?.blobs||[]).map(entry=>({pathname:entry.key,key:entry.key,etag:entry.etag}));
-  return {blobs,hasMore:Boolean(result?.hasMore),cursor:result?.cursor||null};
+// COUNT is a hint. Return the entire SCAN batch: slicing it loses keys forever.
+export async function list({prefix='',limit=100,cursor='0'}={}){
+  if(!/^\d+$/.test(String(cursor)))throw new Error('Invalid storage cursor.');
+  const escaped=String(prefix).replace(/[\\*?\[\]]/g,'\\$&');
+  const [next,keys]=await (await redisClient()).scan(String(cursor),'MATCH',escaped+'*','COUNT',Math.min(1000,Math.max(1,Number(limit)||100)));
+  return {blobs:[...new Set(keys)].map(key=>({pathname:key,key,etag:''})),hasMore:next!=='0',cursor:next!=='0'?next:null};
+}
+export async function acquireLease(key,seconds=180){
+  const token=crypto.randomUUID();const client=await redisClient();
+  if(await client.set(key,token,'EX',seconds,'NX')!=='OK')return null;
+  return async()=>client.eval("if redis.call('get',KEYS[1]) == ARGV[1] then return redis.call('del',KEYS[1]) end return 0",1,key,token);
 }

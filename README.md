@@ -1,5 +1,5 @@
-# SPLIT Onchain
+# SPLIT
 
-SPLIT v73 source repository for deployment and production migration.
+Group payments and Solana token launches, hosted on Render.
 
-Do not commit private keys, seed phrases, API secrets, or local `.env` files.
+Run `npm install`, `npm run build`, and `npm start`. Set server credentials in Render environment variables. See [OPERATIONS.md](OPERATIONS.md) for reconciliation, monitoring, and frontend maintenance.
