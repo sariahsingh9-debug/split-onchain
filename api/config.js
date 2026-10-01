@@ -9,5 +9,5 @@ export default async function handler(req,res){
   const emailReady=Boolean(process.env.RESEND_API_KEY&&process.env.SPLIT_EMAIL_FROM&&process.env.SPLIT_INVITE_SECRET);
   let storageReady=false;try{await list({prefix:'split-health/',limit:1});storageReady=true}catch{}
   // Never expose a custom RPC URL to the browser; it may contain an API key.
-  return res.status(200).json({network,routerReady,uploadReady,launchAuthReady,emailReady,storageReady,launchReady:routerReady&&uploadReady&&launchAuthReady&&storageReady,splitReady:emailReady&&storageReady});
+  return res.status(200).json({network,routerReady,uploadReady,launchAuthReady,emailReady,emailOptional:true,storageReady,launchReady:routerReady&&uploadReady&&launchAuthReady&&storageReady,splitReady:storageReady});
 }
