@@ -43,7 +43,7 @@ export default async function handler(req,res){
     backgroundReconcile:reconciliation.healthy,
     monitoring:alertConfigured()
   };
-  const connection=url=>new Connection(url,{commitment:'confirmed',disableRetryOnRateLimit:true,fetch:(url,options)=>fetch(url,{...options,signal:AbortSignal.timeout(5000)})});
+  const connection=url=>new Connection(url,{commitment:'confirmed',disableRetryOnRateLimit:true,fetch:(url,options)=>fetch(url,{...options,signal:AbortSignal.timeout(8000)})});
   await Promise.all([
     connection(launchRpc).getLatestBlockhash('confirmed').then(()=>{services.launchSolana=true}).catch(()=>{}),
     connection(paymentRpc).getLatestBlockhash('confirmed').then(()=>{services.paymentSolana=true}).catch(()=>{}),

@@ -1,7 +1,7 @@
 {
   "name": "split-onchain",
   "private": true,
-  "version": "76.1.0",
+  "version": "76.1.1",
   "type": "module",
   "engines": {
     "node": "24.x"

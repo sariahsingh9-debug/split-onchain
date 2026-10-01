@@ -36,4 +36,43 @@ try{
   assert.deepEqual(errors,[]);assert.deepEqual(missing,[]);
   console.log('Browser flow passed at width',width);await page.close();
  }
+ const page=await browser.newPage({viewport:{width:375,height:950}});
+ let saveAvailable=false;const records=[];
+ const hash='0x'+'a'.repeat(64),payer='0x'+'1'.repeat(40);
+ await page.addInitScript(({hash,payer})=>{
+  window.ethereum={async request({method}){
+   if(method==='eth_requestAccounts')return [payer];
+   if(method==='eth_chainId')return '0x2105';
+   if(method==='eth_sendTransaction'){localStorage.setItem('test-wallet-sends',String(Number(localStorage.getItem('test-wallet-sends')||0)+1));return hash}
+   throw new Error('Unexpected wallet request '+method);
+  }};
+ },{hash,payer});
+ await page.route('**/api/**',async route=>{
+  const url=new URL(route.request().url());
+  if(url.pathname==='/api/verify-split-invite')return route.fulfill({json:{success:true,request:{splitId:'recovery-test',participantId:'person',participantName:'A',splitName:'Exact share',family:'evm',network:'base',networkName:'Base',asset:'ETH',amount:'0.000000000000000001',payout:'0x'+'2'.repeat(40),expiresAt:Date.now()+86400000,status:'pending'}}});
+  if(url.pathname==='/api/build-split-payment')return route.fulfill({json:{success:true,family:'evm',network:'base',chainId:'0x2105',to:'0x'+'2'.repeat(40),value:'0x1'}});
+  if(url.pathname==='/api/record-split-payment'){
+   records.push(route.request().postDataJSON());
+   return route.fulfill({status:saveAvailable?200:503,json:saveAvailable?{success:true,persisted:true,status:'confirmed',confirmed:true}:{success:false,error:'Storage temporarily unavailable.'}});
+  }
+  return route.fulfill({json:{success:true,launches:[],tokens:[],network:'solana-devnet'}});
+ });
+ await page.goto('http://127.0.0.1:3100/?pay=browser-recovery-test');
+ await page.locator('#payAmount').filter({hasText:'0.000000000000000001'}).waitFor();
+ assert.equal(await page.locator('#payRecipient').textContent(),'0x'+'2'.repeat(40));
+ assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth),false);
+ await page.locator('#payConnectBtn').click();await page.locator('#payNowBtn').click();
+ await page.locator('#payStatus').filter({hasText:'Do not send again'}).waitFor();
+ assert.equal(await page.locator('#payNowBtn').isVisible(),false);
+ assert.equal(await page.locator('#payRecoveryHash').inputValue(),hash);
+ await page.reload();
+ await page.locator('#payStatus').filter({hasText:'Do not send again'}).waitFor();
+ assert.equal(await page.locator('#payConnectBtn').isVisible(),false);
+ assert.equal(await page.locator('#payRecoveryHash').inputValue(),hash);
+ saveAvailable=true;await page.locator('#payRecoveryCheck').click();
+ await page.locator('#payRequestState').filter({hasText:'Payment confirmed'}).waitFor();
+ assert.equal(await page.evaluate(()=>localStorage.getItem('test-wallet-sends')),'1');
+ assert.equal(await page.evaluate(()=>localStorage.getItem('split-payment-recovery:recovery-test:person')),null);
+ assert.ok(records.length>=3);for(const record of records){assert.equal(record.txHash,hash);assert.equal(record.payer,payer)}
+ console.log('Payment reference survives failed storage and reload without a second wallet transfer.');await page.close();
 }finally{await browser.close();server.kill()}

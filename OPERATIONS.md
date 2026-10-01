@@ -32,6 +32,8 @@ The launchpad stays explicitly on Solana devnet. Test tokens have no monetary va
 
 Invitation email is optional. Link sharing is the default and requires participant names, not email addresses. Email mode requires credentials plus `SPLIT_EMAIL_DOMAIN_VERIFIED=true`, which must only be set after the sending domain is actually verified in Resend. Webhook configuration enables delivery tracking but does not block link sharing. Use the existing owner-only operational alert sender until a domain is verified.
 
+Participant payment references are saved locally immediately after the wallet returns them, before the tracking request. A failed save keeps the existing reference visible and blocks a second wallet transfer. Returning to the link retries that reference; a keepalive request also attempts to finish tracking during navigation. The payment page offers manual recovery from wallet history. Automatic server reconciliation starts after the reference reaches storage. If a wallet broadcasts but closes before returning its reference, recover it from wallet history; no browser API can guarantee receiving that response after the page exits.
+
 ## Safe storage migration
 
 Do not upgrade the current free instance in place: Render discards its data during an upgrade. Create a separate paid Key Value instance in Virginia with persistence enabled and `noeviction`, and keep the original instance until the switch is verified.

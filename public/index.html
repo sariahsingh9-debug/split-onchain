@@ -67,7 +67,7 @@
 
 
 
-<link rel="stylesheet" href="/assets/site.css?v=288a62b7ca93">
+<link rel="stylesheet" href="/assets/site.css?v=31cdda449b63">
 <link rel="icon" href="/favicon.ico" sizes="any">
 <link rel="icon" type="image/png" href="/favicon.png">
 </head>
@@ -631,7 +631,17 @@
 
         <button class="sc-btn sc-btn-primary payPrimaryV52" id="payConnectBtn" type="button">Connect wallet</button>
         <button class="sc-btn sc-btn-primary payPrimaryV52" id="payNowBtn" type="button" style="display:none">Pay my share</button>
-        <div class="payStatusV52" id="payStatus"></div><div class="payLegalV61">By using SPLIT you agree to the <a href="terms.html">Terms</a> and acknowledge the <a href="privacy.html">Privacy notice</a>.</div>
+        <div class="payStatusV52" id="payStatus" role="status" aria-live="polite"></div>
+        <details class="payRecovery" id="payRecovery">
+          <summary>Already sent a payment?</summary>
+          <p>Check the existing transaction before sending again. Find its reference and sending address in your wallet history.</p>
+          <label for="payRecoveryHash">Transaction reference</label>
+          <input id="payRecoveryHash" type="text" autocomplete="off" spellcheck="false">
+          <label for="payRecoveryPayer">Sending wallet address</label>
+          <input id="payRecoveryPayer" type="text" autocomplete="off" spellcheck="false">
+          <button class="sc-btn payPrimaryV52" id="payRecoveryCheck" type="button">Check existing payment</button>
+        </details>
+        <div class="payLegalV61">By using SPLIT you agree to the <a href="terms.html">Terms</a> and acknowledge the <a href="privacy.html">Privacy notice</a>.</div>
       </section>
 
       <aside class="paySideV52">
@@ -647,6 +657,7 @@
     </main>
   </div>
 </div>
+
 
 <div id="tokensDirectoryPage" style="display:none">
   <div class="tdShellV55">
@@ -929,7 +940,7 @@
 
 <script src="/assets/js/section-effects.js?v=3e80595cc655"></script>
 
-<script src="/assets/js/participant-payment.js?v=44d6f755d7cc"></script>
+<script src="/assets/js/participant-payment.js?v=1b889b510b41"></script>
 
 <script src="/assets/js/token-directory.js?v=6c3f7c065f9f"></script>
 

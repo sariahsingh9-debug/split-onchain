@@ -102,7 +102,7 @@ app.use((error,req,res,next)=>{
   res.status(status).json({success:false,error:status===413?'Request is too large.':'SPLIT could not complete that request.',requestId:req.requestId});
 });
 
-app.get('/healthz',(req,res)=>res.json({ok:true,service:'split-onchain',version:'76.1.0'}));
+app.get('/healthz',(req,res)=>res.json({ok:true,service:'split-onchain',version:'76.1.1'}));
 
 app.get('*',(req,res)=>{
   res.setHeader('Cache-Control','no-cache');
