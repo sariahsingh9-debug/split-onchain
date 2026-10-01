@@ -27,7 +27,7 @@ export function inviteHtml(meta,participant,url){
 }
 function resendHeaders(idempotencyKey){
   const key=process.env.RESEND_API_KEY;
-  if(!key)throw new Error('RESEND_API_KEY is not configured.');
+  if(!key)throw new Error('Email delivery is unavailable right now.');
   return {'authorization':`Bearer ${key}`,'content-type':'application/json','Idempotency-Key':idempotencyKey};
 }
 export async function sendInviteBatch(messages,idempotencyKey){
