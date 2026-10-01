@@ -1,14 +1,16 @@
 {
   "name": "split-onchain",
   "private": true,
-  "version": "73.0.0",
+  "version": "74.0.0",
   "type": "module",
   "engines": {
     "node": "20.x"
   },
   "scripts": {
     "build": "node scripts/netlify-build.mjs",
-    "audit": "node scripts/netlify-audit.mjs"
+    "audit": "node scripts/netlify-audit.mjs",
+    "start": "node server.mjs",
+    "render:reconcile": "node scripts/reconcile-render.mjs"
   },
   "dependencies": {
     "@irys/upload": "0.0.15",
@@ -19,6 +21,8 @@
     "@solana/spl-token": "0.4.15",
     "bs58": "6.0.0",
     "ethers": "6.17.0",
-    "tweetnacl": "1.0.3"
+    "tweetnacl": "1.0.3",
+    "express": "4.21.2",
+    "ioredis": "5.4.2"
   }
 }
