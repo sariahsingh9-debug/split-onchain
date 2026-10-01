@@ -555,14 +555,18 @@ section{padding:120px 6vw;max-width:1450px;margin:auto}.sectionHead{display:flex
 
 
 <style>
-/* v39 — keep USDC close without touching the animated amount */
+/* v39 — balanced live total spacing */
 .splitPreview .splitTotalDisplay{
-  grid-template-columns:6.9ch auto;
-  column-gap:5px;
+  font-size:clamp(42px,4.5vw,60px);
+  grid-template-columns:7.2ch auto;
+  column-gap:8px;
 }
 .splitPreview .splitTotalDisplay .splitCounter{
-  width:6.9ch;
-  min-width:6.9ch;
+  width:7.2ch;
+  min-width:7.2ch;
+}
+.splitPreview .splitTotalDisplay .splitCurrency{
+  margin-left:2px;
 }
 /* Never show the duplicate header currency label. */
 .splitPreviewTop > .kicker{
