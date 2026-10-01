@@ -76,8 +76,7 @@ export default async function handler(req,res){
       if(!validEmail(normalized[i].email))return res.status(400).json({success:false,error:`${normalized[i].name} needs a valid email address.`});
     }
     if(new Set(normalized.map(p=>p.email)).size!==normalized.length)return res.status(400).json({success:false,error:'Each participant must use a different email address.'});
-    if(!process.env.SPLIT_EMAIL_FROM)return res.status(503).json({success:false,error:'SPLIT_EMAIL_FROM is not configured.'});
-    if(!process.env.RESEND_API_KEY)return res.status(503).json({success:false,error:'RESEND_API_KEY is not configured.'});
+    const emailConfigured=Boolean(process.env.SPLIT_EMAIL_FROM&&process.env.RESEND_API_KEY);
 
     const requestFingerprint=fingerprint({
       name,totalUnits:totalUnits.toString(),network,asset,payout,
@@ -106,7 +105,7 @@ export default async function handler(req,res){
         await writeSplitMeta(splitId,meta,{overwrite:false});
       }catch(error){
         try{existingMeta=await readSplitMeta(splitId)}catch{}
-        if(!existingMeta)return res.status(503).json({success:false,error:'SPLIT storage is not connected. Netlify Blobs must be available before sending payment invitations.'});
+        if(!existingMeta)return res.status(503).json({success:false,error:'Secure SPLIT storage is temporarily unavailable. Please try again shortly.'});
         if(existingMeta.requestFingerprint&&existingMeta.requestFingerprint!==requestFingerprint){
           return res.status(409).json({success:false,error:'This SPLIT creation request id was already used for different details.'});
         }
@@ -147,7 +146,9 @@ export default async function handler(req,res){
     }
 
     let batchError='';let deliveryStateWarning='';
-    if(invites.some(x=>!x.emailSent)&&!meta.emailBatchAcceptedAt){
+    if(!emailConfigured){
+      batchError='Email invitations are not enabled yet. Your SPLIT is ready — copy and share each participant payment link manually.';
+    }else if(invites.some(x=>!x.emailSent)&&!meta.emailBatchAcceptedAt){
       const attemptedAt=Number(meta.emailBatchAttemptedAtMs||0);
       const retryWindowMs=23*60*60*1000;
 
@@ -172,8 +173,11 @@ export default async function handler(req,res){
           }));
           delivered=await sendInviteBatch(messages,`split-invites/${splitId}`);
         }catch(error){
-          batchError=error?.message||'Email delivery failed.';
-          console.error('SPLIT invite batch failed:',batchError);
+          const raw=String(error?.message||'');
+          batchError=/not configured|api key|sender|domain/i.test(raw)
+            ?'Email invitations are temporarily unavailable. Your SPLIT is ready — share the participant links manually.'
+            :(raw||'Email delivery failed. Share the participant links manually or try email again later.');
+          console.error('SPLIT invite batch failed:',raw||error);
         }
 
         if(delivered){
@@ -209,7 +213,11 @@ export default async function handler(req,res){
     });
   }catch(error){
     console.error(error);
-    const status=/not configured|storage|blob/i.test(String(error?.message||''))?503:400;
-    return res.status(status).json({success:false,error:error?.message||'Could not create SPLIT invitations.'});
+    const raw=String(error?.message||'');
+    const status=/storage|blob|redis/i.test(raw)?503:400;
+    const safe=/not configured|api key|secret|redis_url|private_key/i.test(raw)
+      ?'This SPLIT feature is temporarily unavailable. Please try again shortly.'
+      :(raw||'Could not create SPLIT invitations.');
+    return res.status(status).json({success:false,error:safe});
   }
 }
