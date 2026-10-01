@@ -115,57 +115,6 @@
     line-height:1.65!important;
     color:#8a8a8a!important;
   }
-  .root .heroV22 .heroBtns{
-    display:flex!important;
-    flex-direction:column!important;
-    width:100%!important;
-    max-width:100%!important;
-    gap:9px!important;
-    margin-top:22px!important;
-  }
-  .root .heroV22 .heroBtns .btn{
-    width:100%!important;
-    max-width:100%!important;
-    min-height:48px!important;
-    padding:0 16px!important;
-    font-size:12px!important;
-    border-radius:13px!important;
-    justify-content:center!important;
-  }
-
-  .root .heroProofV47{
-    display:grid!important;
-    grid-template-columns:repeat(2,minmax(0,1fr))!important;
-    width:100%!important;
-    max-width:100%!important;
-    gap:7px!important;
-    margin-top:16px!important;
-  }
-  .root .heroProofV47 span{
-    width:100%!important;
-    min-width:0!important;
-    padding:8px 9px!important;
-    font-size:7.5px!important;
-    line-height:1.25!important;
-    white-space:normal!important;
-    text-align:left!important;
-  }
-
-  .heroSystemV51{
-    width:100%!important;
-    max-width:100%!important;
-    margin-top:20px!important;
-    grid-template-columns:1fr!important;
-    gap:7px!important;
-  }
-  .heroSystemV51>i{display:none!important}
-  .heroSystemV51>div{
-    width:100%!important;
-    min-width:0!important;
-    grid-template-columns:26px 72px minmax(0,1fr)!important;
-    gap:8px!important;
-  }
-  .heroSystemV51 span{white-space:normal!important}
   .root .heroFlowV22{
     width:100%!important;
     max-width:100%!important;
@@ -217,7 +166,7 @@
   }
 }
 @media (max-width:380px){
-  .root .navactions #dashboardNavLink{display:none!important}
+  .root .navactions .xLinkV69{display:none!important}
   .root .hero.heroV22 h1{font-size:clamp(42px,13.6vw,52px)!important}
   .root .hero.heroV22 h1 .mutedLine{font-size:.72em!important}
 }

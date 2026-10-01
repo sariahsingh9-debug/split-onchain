@@ -47,7 +47,10 @@
   margin:0;color:#969696;font-size:16px;line-height:1.75;
 }
 .heroExplainV22 strong{color:#f1f1f1;font-weight:760}
-.heroV22 .heroBtns{justify-content:flex-start;margin-top:24px}
+.heroActions{display:flex;align-items:center;gap:24px;margin-top:27px}
+.heroActions .btn.large{min-height:48px;padding:0 22px;border-radius:13px}
+.heroHowLink{display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:44px;color:#aaa;font-size:11px;font-weight:700;text-decoration:none}
+.heroHowLink:hover{color:#fff}
 .heroFlowV22{
   position:relative;
   min-height:590px;
@@ -177,8 +180,8 @@
 @media(max-width:620px){
   .hero.heroV22{padding:76px 20px 30px;gap:38px}
   .hero.heroV22 h1{font-size:clamp(54px,17vw,78px);line-height:.86}
-  .heroV22 .heroBtns{flex-direction:column}
-  .heroV22 .heroBtns .btn{width:100%}
+  .heroActions{flex-direction:column;gap:8px;margin-top:22px}
+  .heroActions .btn{width:100%}
   .heroFlowV22{min-height:520px}
   .flowCanvasV22{min-height:510px}
   .flowRequestV22{width:145px;height:145px}

@@ -25,7 +25,6 @@ nav{height:78px;display:flex;align-items:center;justify-content:space-between;pa
 .hero h1{font-size:clamp(70px,13vw,170px);line-height:.8;letter-spacing:-.095em;margin:30px 0 26px;font-weight:950;max-width:1150px}
 .hero h1 span{color:transparent;-webkit-text-stroke:1px #eee}
 .hero p{max-width:650px;margin:auto;color:#999;font-size:18px;line-height:1.65}
-.heroBtns{display:flex;justify-content:center;gap:10px;margin-top:32px}
 .ticker{border-top:1px solid var(--line);border-bottom:1px solid var(--line);overflow:hidden;white-space:nowrap;background:#080808}
 .tickerTrack{display:inline-flex;gap:60px;padding:18px 0;animation:marquee 22s linear infinite;color:#8c8c8c;font-size:11px;letter-spacing:.15em;text-transform:uppercase}
 @keyframes marquee{to{transform:translateX(-50%)}}
@@ -95,4 +94,4 @@ section{padding:120px 6vw;max-width:1450px;margin:auto}
 .toast{position:fixed;right:20px;bottom:20px;background:#fff;color:#000;padding:13px 17px;border-radius:13px;font-weight:800;transform:translateY(120px);transition:.3s;z-index:50;box-shadow:0 15px 60px #000}
 .toast.show{transform:none}
 @media(max-width:900px){.navlinks{display:none}.featureGrid,.launch,.mockup{grid-template-columns:1fr}.flow,.architecture{grid-template-columns:1fr 1fr}.statGrid{grid-template-columns:1fr}.sidebar{display:none}.hero{min-height:680px}.sectionHead{display:block}.sectionHead p{margin-top:20px}.row{grid-template-columns:1.3fr 1fr 1fr}.row>*:last-child{display:none}}
-@media(max-width:560px){nav{padding:0 18px}.navactions .btn:first-child{display:none}.hero{padding:70px 20px}.hero h1{font-size:72px}.hero p{font-size:15px}.heroBtns{flex-direction:column}.heroBtns .btn{width:100%}section{padding:80px 20px}.miniGrid,.flow,.architecture{grid-template-columns:1fr}.tickerTrack{gap:30px}.card{padding:22px}.visual{min-height:360px}.splitOrb{width:210px;height:210px}.number{font-size:42px}}
+@media(max-width:560px){nav{padding:0 18px}.navactions .btn:first-child{display:none}.hero{padding:70px 20px}.hero h1{font-size:72px}.hero p{font-size:15px}section{padding:80px 20px}.miniGrid,.flow,.architecture{grid-template-columns:1fr}.tickerTrack{gap:30px}.card{padding:22px}.visual{min-height:360px}.splitOrb{width:210px;height:210px}.number{font-size:42px}}

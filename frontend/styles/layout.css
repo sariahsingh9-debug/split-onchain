@@ -26,23 +26,6 @@ nav{
 }
 .brandGlyphV47 i{display:block;border-radius:2px;background:#f2f2f2}
 .brandGlyphV47 i:last-child{opacity:.36}
-.heroProofV47{
-  margin-top:28px;
-  display:flex;
-  flex-wrap:wrap;
-  gap:8px;
-  max-width:760px;
-}
-.heroProofV47 span{
-  border:1px solid #242424;
-  background:rgba(255,255,255,.018);
-  border-radius:999px;
-  padding:9px 11px;
-  color:#777;
-  font-size:9px;
-  letter-spacing:.04em;
-}
-.heroProofV47 b{color:#d9d9d9;font-weight:850}
 .heroFlowV22:after{
   content:"";
   position:absolute;
@@ -340,8 +323,6 @@ nav{
   .launchIntroV47{min-height:560px}
 }
 @media(max-width:620px){
-  .heroProofV47{gap:6px}
-  .heroProofV47 span{font-size:8px;padding:8px 9px}
   .cultureV47,.launchV47{padding:78px 20px 24px}
   .cultureTopV47{gap:24px}
   .cultureTopV47 h2{font-size:clamp(48px,15vw,72px)}
@@ -604,73 +585,6 @@ body{scrollbar-color:#303030 #070707}
   color:#828282;
   line-height:1.72;
 }
-.root .heroBtns{
-  justify-content:flex-start;
-  margin-top:27px;
-}
-.root .heroBtns .btn.large{
-  min-height:48px;
-  padding:0 18px;
-  border-radius:13px;
-}
-.root .heroProofV47{
-  margin-top:20px;
-}
-.root .heroProofV47 span{
-  background:rgba(255,255,255,.014);
-  border-color:#202020;
-  padding:7px 9px;
-  font-size:8px;
-}
-.heroSystemV51{
-  margin-top:24px;
-  max-width:700px;
-  display:grid;
-  grid-template-columns:auto 1fr auto 1fr auto;
-  gap:12px;
-  align-items:center;
-}
-.heroSystemV51>i{
-  height:1px;
-  background:linear-gradient(90deg,#2d2d2d,#555,#2d2d2d);
-  position:relative;
-  overflow:hidden;
-}
-.heroSystemV51>i:after{
-  content:"";
-  position:absolute;
-  top:-2px;
-  width:5px;height:5px;
-  border-radius:50%;
-  background:#fff;
-  box-shadow:0 0 10px rgba(255,255,255,.5);
-  animation:v51Rail 4.4s linear infinite;
-}
-.heroSystemV51>i:nth-of-type(2):after{animation-delay:2.2s}
-@keyframes v51Rail{
-  0%{left:-4px;opacity:0}
-  10%{opacity:1}
-  90%{opacity:1}
-  100%{left:100%;opacity:0}
-}
-.heroSystemV51>div{
-  min-width:110px;
-  display:grid;
-  gap:3px;
-}
-.heroSystemV51 small{
-  color:#4f4f4f;
-  font-size:7px;
-  letter-spacing:.12em;
-}
-.heroSystemV51 strong{
-  font-size:10px;
-  color:#cfcfcf;
-}
-.heroSystemV51 span{
-  color:#565656;
-  font-size:8px;
-}
 .root .heroFlowV22{
   position:relative;
   z-index:2;
@@ -888,18 +802,6 @@ body{scrollbar-color:#303030 #070707}
   .root .heroExplainV22 p{
     font-size:12px;
   }
-  .root .heroBtns{display:grid;grid-template-columns:1fr 1fr;width:100%}
-  .root .heroBtns .btn{width:100%}
-  .heroSystemV51{
-    grid-template-columns:1fr;
-    gap:7px;
-  }
-  .heroSystemV51>i{display:none}
-  .heroSystemV51>div{
-    display:grid;
-    grid-template-columns:30px 90px 1fr;
-    align-items:center;
-  }
   .protocolRailInnerV51{
     grid-template-columns:1fr;
     padding:0 20px;
@@ -914,7 +816,4 @@ body{scrollbar-color:#303030 #070707}
     padding-top:72px;
     padding-bottom:72px;
   }
-}
-@media(prefers-reduced-motion:reduce){
-  .heroSystemV51>i:after{animation:none}
 }
