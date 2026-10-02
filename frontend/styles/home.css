@@ -441,7 +441,6 @@
 #launchModal .launch-network-notice{max-width:none;margin:0 0 20px}
 .cultureV47{padding-top:64px;padding-bottom:64px}
 .cultureTopV47{margin-bottom:0}
-.orbitCaption{bottom:8px;width:100%;text-align:center;font-size:12px;letter-spacing:.04em;white-space:normal}
 @media(max-width:620px){
  .orbitStage{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;padding:180px 12px 44px;min-height:0}
  .orbitStage .networkNode{position:static;min-width:0;transform:none;animation:none!important;padding:12px 10px}
@@ -450,7 +449,6 @@
  .orbitStage .orbitCore{top:80px}
  .orbitStage .coreHalo{top:80px;width:150px;height:150px}
  .orbitStage .routeSvg,.orbitStage .packet{display:none}
- .orbitStage .orbitCaption{bottom:10px;font-size:11px;line-height:1.4}
  .cultureTopV47 h2{font-size:clamp(36px,12vw,60px)}
  .settlementIntro{font-size:14px}
 }

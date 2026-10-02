@@ -310,7 +310,6 @@ box-shadow:0 0 100px rgba(255,255,255,.09),inset -16px -20px 38px rgba(0,0,0,.55
   58%{right:49.2%;bottom:49%;opacity:1}
   72%,100%{right:49.2%;bottom:49%;opacity:0}
 }
-.orbitCaption{position:absolute;left:50%;bottom:22px;transform:translateX(-50%);color:#999;font-size:12px;letter-spacing:.18em;text-transform:uppercase;z-index:3}
 .settlementStatus{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:22px}
 .settlementMetric{border-top:1px solid #222;padding-top:14px}
 .settlementMetric span{display:block;color:#999;font-size:12px;text-transform:uppercase;letter-spacing:.14em}
@@ -359,6 +358,5 @@ box-shadow:0 0 100px rgba(255,255,255,.09),inset -16px -20px 38px rgba(0,0,0,.55
   .networkNode.polygon{left:50%;bottom:3%}
   .networkNode.avalanche{left:4%;bottom:12%}
   .networkNode.bnb{left:2%;top:42%}
-  .orbitCaption{bottom:70px;width:80%;text-align:center;line-height:1.5}
   .settlementStatus{grid-template-columns:1fr}
 }
