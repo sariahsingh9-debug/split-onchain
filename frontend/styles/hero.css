@@ -6,7 +6,7 @@
   grid-template-columns:minmax(0,1.05fr) minmax(420px,.95fr);
   gap:70px;
   align-items:center;
-  padding:12px 6vw 34px;
+  padding:24px 6vw 34px;
   text-align:left;
   position:relative;
   max-width:1450px;
