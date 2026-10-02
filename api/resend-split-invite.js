@@ -1,7 +1,9 @@
 import {
-  signPayload, verifyPayload, readSplitMeta, readParticipant, saveParticipant, baseUrl, writeEmailIndex
+  signPayload, verifyPayload, readSplitMeta, readParticipant, baseUrl
 } from './_split-invite-utils.js';
-import { inviteSubject, inviteHtml, sendOneInvite } from './_split-email.js';
+import { recordAcceptedEmail } from './_split-email-state.js';
+import { invitationEmailReady } from './_email-capabilities.js';
+import { inviteSubject, inviteHtml, inviteText, sendOneInvite } from './_split-email.js';
 
 function bodyOf(req){if(typeof req.body==='string')return JSON.parse(req.body||'{}');return req.body||{}}
 
@@ -20,7 +22,7 @@ export default async function handler(req,res){
   if(req.method!=='POST')return res.status(405).json({success:false,error:'Method not allowed.'});
   try{
     const {adminToken,participantId}=bodyOf(req);
-    if(!process.env.RESEND_API_KEY||!process.env.SPLIT_EMAIL_FROM){
+    if(!invitationEmailReady()){
       return res.status(503).json({success:false,error:'Email invitations are not enabled yet. Copy and share the participant payment link instead.'});
     }
     const admin=verifyPayload(adminToken,'admin');
@@ -41,21 +43,13 @@ export default async function handler(req,res){
         from:process.env.SPLIT_EMAIL_FROM,
         to:[participant.email],
         subject:inviteSubject(meta,participant),
-        html:inviteHtml(meta,participant,url)
+        html:inviteHtml(meta,participant,url),
+        text:inviteText(meta,participant,url)
       },
       `split-resend/${meta.splitId}/${participant.id}/${day}`
     );
 
-    const updated={
-      ...participant,
-      emailSent:true,
-      emailStatus:'accepted',
-      emailError:'',
-      emailId:delivered?.id||participant.emailId||'',
-      lastResentAt:new Date().toISOString()
-    };
-    await saveParticipant(meta.splitId,updated,meta);
-    if(updated.emailId)await writeEmailIndex(updated.emailId,{splitId:meta.splitId,participantId:updated.id});
+    const updated=await recordAcceptedEmail(meta,participant.id,delivered.id,{lastResentAt:new Date().toISOString()},true);
 
     return res.status(200).json({
       success:true,

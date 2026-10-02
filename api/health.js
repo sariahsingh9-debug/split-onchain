@@ -11,6 +11,7 @@ function senderDomain(value){
 async function emailHealth(){
   const configured=Boolean(process.env.RESEND_API_KEY&&process.env.SPLIT_EMAIL_FROM&&process.env.SPLIT_INVITE_SECRET);
   if(!configured)return {configured:false,domainVerified:false,webhook:Boolean(process.env.RESEND_WEBHOOK_SECRET)};
+  if(invitationEmailReady())return {configured:true,domainVerified:true,webhook:Boolean(process.env.RESEND_WEBHOOK_SECRET)};
   const wanted=senderDomain(process.env.SPLIT_EMAIL_FROM);
   try{
     const response=await fetch('https://api.resend.com/domains?limit=100',{

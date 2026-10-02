@@ -46,6 +46,7 @@
   let payoutMode='connect';
   let creatorWallet='';
   let deliveryMode='link';
+  let deliveryChosen=false;
   let emailReady=false;
   let paymentCreationReady=false;
   let createSplitRequestId='';
@@ -291,7 +292,7 @@
     deliveryMode=mode;resetCreateSplitRequestId();
     el('splitCreatorPage').dataset.delivery=mode;
     el('scModeLink').classList.toggle('selected',mode==='link');el('scModeEmail').classList.toggle('selected',mode==='email');
-    el('scDeliveryNote').textContent=mode==='link'?'Create a unique payment link for each person. Copy the links and share them in your group chat. No email address is required.':'Each person receives their own payment link by email. Delivery status appears after creation.';
+    el('scDeliveryNote').textContent=mode==='link'?'Create a unique payment link for each person. Copy the links and share them in your group chat. No email address is required.':'You receive a confirmation, and each participant receives their own payment link by email. Delivery status appears after creation.';
     calculate();
   }
   async function refreshCreationConfig(){
@@ -299,6 +300,8 @@
       const res=await fetch('/api/config',{signal:AbortSignal.timeout(8000)});if(!res.ok)throw new Error();const cfg=await res.json();
       emailReady=Boolean(cfg.emailReady);paymentCreationReady=Boolean(cfg.paymentCreationReady);
       el('scModeEmail').disabled=!emailReady;
+      if(emailReady&&!deliveryChosen){setDelivery('email');deliveryChosen=true}
+      if(!emailReady&&deliveryMode==='email')setDelivery('link');
       el('scModeEmail').title=emailReady?'Send payment links by email':'Email invitations are unavailable; share links instead.';
       el('scAvailability').textContent=paymentCreationReady?'Payments go directly to your receiving wallet. Review the network and exact shares before creating.':'Live payment creation is paused while payment records are secured. You can explore the form and calculator.';
     }catch{paymentCreationReady=false;el('scAvailability').textContent='Payment availability could not be checked. Please try again shortly.'}
@@ -434,6 +437,8 @@
     const host=el('scInviteDeliveryList');
     if(!host)return;
     host.innerHTML='';
+    const creator=record.creatorDelivery||{};
+    el('scCreatorDeliveryStatus').textContent=creator.email?'Your confirmation: '+(creator.emailStatus||'pending')+' · '+creator.email:'';
     (record.invites||[]).forEach(invite=>{
       const row=document.createElement('div');
       row.className='sc-inviteDeliveryRowV52';
@@ -447,15 +452,8 @@
 
       const status=document.createElement('b');
       const paymentState=invite.status==='confirmed'?'Paid':invite.status==='submitted'?'Submitted':invite.status==='rejected'?'Pending':'Pending';
-      const emailState=invite.emailStatus==='delivered'
-        ? 'Delivered'
-        : invite.emailStatus==='bounced'
-          ? 'Bounced'
-          : invite.emailStatus==='complained'
-            ? 'Complaint'
-            : invite.emailSent
-              ? 'Email accepted'
-              : record.deliveryMode==='link'?'Link ready':'Email failed';
+      const emailStates={delivered:'Delivered',bounced:'Bounced',complained:'Complaint',failed:'Email failed',suppressed:'Email suppressed',delayed:'Delivery delayed',sent:'Sent',accepted:'Email accepted'};
+      const emailState=emailStates[invite.emailStatus]||(record.deliveryMode==='link'?'Link ready':'Email pending');
       status.textContent=paymentState+' · '+emailState;
       status.dataset.state=invite.status==='confirmed'?'confirmed':invite.emailStatus==='delivered'?'delivered':invite.status||'pending';
 
@@ -522,7 +520,7 @@
     el('scSuccessPanel').style.display='grid';
     el('scSuccessName').textContent=record.name;
     const sent=(record.invites||[]).filter(x=>x.emailSent).length;
-    el('scSuccessMeta').textContent=(record.deliveryMode==='link'?record.people.length+' participant links ready':sent+' of '+record.people.length+' invitations emailed')+' · '+record.asset+' on '+record.networkName;
+    el('scSuccessMeta').textContent=(record.deliveryMode==='link'?record.people.length+' participant links ready':sent+' of '+record.people.length+' invitations accepted')+' · '+record.asset+' on '+record.networkName;
     renderInviteDelivery(record);
     renderRecentSplits();
     el('scSuccessPanel').scrollIntoView({behavior:'smooth',block:'nearest'});
@@ -534,6 +532,7 @@
     const totalRaw=el('scTotal').value.trim();
     const total=Number(totalRaw)||0;
     const people=participantRows();
+    const creatorEmail=deliveryMode==='email'?el('scCreatorEmail').value.trim().toLowerCase():'';
     const r=recipient();
 
     if(!net()||!selectedAsset){el('scCreateStatus').textContent='Choose a network and payment asset first.';return}
@@ -547,6 +546,7 @@
       return;
     }
 
+    if(deliveryMode==='email'&&!emailLooksValid(creatorEmail)){el('scCreateStatus').textContent='Enter your email address to receive the SPLIT confirmation.';return}
     const badEmail=people.findIndex(x=>(deliveryMode==='email'||x.email)&&!emailLooksValid(x.email));
     if(badEmail!==-1){
       el('scCreateStatus').textContent='Add a valid email address for '+people[badEmail].name+'.';
@@ -576,7 +576,7 @@
         headers:{'content-type':'application/json'},
         body:JSON.stringify({
           name,
-          deliveryMode,
+          deliveryMode,creatorEmail,
           total:totalRaw,
           participants:people,
           network:selectedNetwork,
@@ -604,6 +604,7 @@
         storageEnabled:Boolean(out.storageEnabled),
         deliveryMode:out.deliveryMode||deliveryMode,
         emailReady:Boolean(out.emailReady),
+        creatorDelivery:out.creatorDelivery||{},
         createdAt:new Date().toISOString()
       };
 
@@ -613,11 +614,12 @@
       try{localStorage.setItem('split_splits',JSON.stringify(sessionSplits))}catch{}
 
       const sent=record.invites.filter(x=>x.emailSent).length;
-      el('scCreateStatus').textContent=record.deliveryMode==='link'?'SPLIT created. Copy and share each participant link below.':sent===record.people.length
-        ? 'SPLIT created. All '+sent+' payment invitations were emailed.'
-        : 'SPLIT created. '+sent+' of '+record.people.length+' emails were sent — copy any failed links below.';
+      el('scCreateStatus').textContent=record.deliveryMode==='link'?'SPLIT created. Copy and share each participant link below.':sent===record.people.length&&record.creatorDelivery.emailSent
+        ? 'SPLIT created. '+sent+' participant invitations and your confirmation were accepted for delivery.'
+        : 'SPLIT created. '+sent+' of '+record.people.length+' invitations were accepted — copy the links below.';
+      if(out.emailBatchError||out.deliveryStateWarning)el('scCreateStatus').textContent+=' '+(out.emailBatchError||out.deliveryStateWarning);
       showCreatedSplit(record);
-      createSplitRequestId='';
+      if(!out.emailBatchError&&!out.deliveryStateWarning)createSplitRequestId='';
     }catch(err){
       el('scCreateStatus').textContent=err?.message||'Could not create the SPLIT.';
     }finally{
@@ -664,6 +666,7 @@
       const res=await fetch('/api/split-status?token='+encodeURIComponent(latestCreatedSplit.adminToken));
       const out=await res.json().catch(()=>({}));
       if(!res.ok||!out?.success)throw new Error(out?.error||'Could not refresh status.');
+      latestCreatedSplit.creatorDelivery=out.creatorDelivery||latestCreatedSplit.creatorDelivery;
       latestCreatedSplit.invites=(latestCreatedSplit.invites||[]).map(inv=>{
         const fresh=(out.participants||[]).find(x=>x.id===inv.id);
         return fresh?{...inv,status:fresh.status,txHash:fresh.txHash||inv.txHash||'',emailStatus:fresh.emailStatus||inv.emailStatus||'',emailSent:Boolean(fresh.emailSent)}:inv;
@@ -680,8 +683,9 @@
     }
   });
 
-  el('scModeLink').addEventListener('click',()=>setDelivery('link'));
-  el('scModeEmail').addEventListener('click',()=>setDelivery('email'));
+  el('scModeLink').addEventListener('click',()=>{deliveryChosen=true;setDelivery('link')});
+  el('scModeEmail').addEventListener('click',()=>{deliveryChosen=true;setDelivery('email')});
+  el('scCreatorEmail').addEventListener('input',resetCreateSplitRequestId);
   ['','','',''].forEach(()=>addPerson());
   renderNetworks();
   renderAssets();

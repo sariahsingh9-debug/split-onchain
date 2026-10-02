@@ -287,3 +287,5 @@
  #splitCreatorPage .sc-summary .sc-big{font-size:24px;max-width:65%}
  #splitCreatorPage .sc-inviteDeliveryRowV52{grid-template-columns:minmax(0,1fr) auto;gap:12px}
 }
+
+#splitCreatorPage[data-delivery="link"] .sc-creator-email{display:none}

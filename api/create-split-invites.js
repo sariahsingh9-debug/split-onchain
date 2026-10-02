@@ -2,12 +2,13 @@ import crypto from 'node:crypto';
 import { PublicKey } from '@solana/web3.js';
 import {
   signPayload, cleanText, validEmail, baseUrl,
-  readSplitMeta, listParticipants, writeSplitMeta, writeParticipant, saveParticipant, writeEmailIndex
+  readSplitMeta, listParticipants, writeSplitMeta, writeParticipant, writeEmailIndex
 } from './_split-invite-utils.js';
 import { writeCreatorSplitIndex } from './_creator-utils.js';
 import { decimalToUnits, unitsToDecimal, decimalsFor, PAYMENT_NETWORK_NAMES } from './_payment-config.js';
-import { inviteSubject, inviteHtml, sendInviteBatch } from './_split-email.js';
+import { inviteSubject, inviteHtml, inviteText, creatorMessage, sendInviteBatch } from './_split-email.js';
 import { requireDurableStorage, acquireLease } from './_blob-store.js';
+import { recordAcceptedEmail } from './_split-email-state.js';
 import { invitationEmailReady } from './_email-capabilities.js';
 
 function bodyOf(req){if(typeof req.body==='string')return JSON.parse(req.body||'{}');return req.body||{}}
@@ -51,8 +52,11 @@ export default async function handler(req,res){
     const networkName=PAYMENT_NETWORK_NAMES[network];
     const emailConfigured=invitationEmailReady();
     const deliveryMode=input.deliveryMode||'link';
+    const creatorEmail=deliveryMode==='email'?cleanText(input.creatorEmail,160).toLowerCase():'';
     if(!['link','email'].includes(deliveryMode))return res.status(400).json({success:false,error:'Choose link sharing or email invitations.'});
     if(deliveryMode==='email'&&!emailConfigured)return res.status(503).json({success:false,error:'Email invitations are unavailable. Choose Share links to create this SPLIT.'});
+
+    if(deliveryMode==='email'&&!validEmail(creatorEmail))return res.status(400).json({success:false,error:'Enter your email address to receive the SPLIT confirmation.'});
 
     if(!name)return res.status(400).json({success:false,error:'Split name is required.'});
     if(!networkName)return res.status(400).json({success:false,error:'Unsupported payment network.'});
@@ -92,13 +96,14 @@ export default async function handler(req,res){
 
     const requestFingerprint=fingerprint({
       name,totalUnits:totalUnits.toString(),network,asset,payout,
+      ...(creatorEmail?{creatorEmail,deliveryMode}:{}),
       participants:normalized.map(p=>({id:p.id,name:p.name,email:p.email,amountUnits:p.amountUnits}))
     });
     const now=Date.now();
     let meta={
       v:2,splitId,name,total,totalUnits:totalUnits.toString(),splitMode:'equal',decimals,
       network,networkName,asset,payout,creatorWallet:payout,creatorFamily:network==='solana'?'solana':'evm',participantCount:normalized.length,requestFingerprint,
-      deliveryMode,createdAtMs:now,createdAt:new Date(now).toISOString(),expiresAtMs:now+(30*24*60*60*1000),expiresAt:new Date(now+(30*24*60*60*1000)).toISOString()
+      deliveryMode,creatorEmail,creatorEmailSent:false,creatorEmailStatus:deliveryMode==='email'?'pending':'',creatorEmailId:'',createdAtMs:now,createdAt:new Date(now).toISOString(),expiresAtMs:now+(30*24*60*60*1000),expiresAt:new Date(now+(30*24*60*60*1000)).toISOString()
     };
 
     // clientRequestId makes the operation safe to retry if the browser loses the
@@ -160,7 +165,7 @@ export default async function handler(req,res){
     let batchError='';let deliveryStateWarning='';
     if(deliveryMode==='link'){
       batchError='';
-    }else if(invites.some(x=>!x.emailSent)&&!meta.emailBatchAcceptedAt){
+    }else if((invites.some(x=>!x.emailSent)||(meta.creatorEmail&&!meta.creatorEmailSent))&&!meta.emailBatchAcceptedAt){
       const attemptedAt=Number(meta.emailBatchAttemptedAtMs||0);
       const retryWindowMs=23*60*60*1000;
 
@@ -181,8 +186,10 @@ export default async function handler(req,res){
             from:process.env.SPLIT_EMAIL_FROM,
             to:[invite.email],
             subject:inviteSubject(meta,invite),
-            html:inviteHtml(meta,invite,invite.url)
+            html:inviteHtml(meta,invite,invite.url),
+            text:inviteText(meta,invite,invite.url)
           }));
+          if(meta.creatorEmail)messages.push(creatorMessage(meta,invites));
           delivered=await sendInviteBatch(messages,`split-invites/${splitId}`);
         }catch(error){
           const raw=String(error?.message||'');
@@ -193,8 +200,12 @@ export default async function handler(req,res){
         }
 
         if(delivered){
-          meta={...meta,emailBatchAcceptedAt:new Date().toISOString()};
-          try{await writeSplitMeta(splitId,meta)}catch(error){
+          meta={...meta,emailBatchAcceptedAt:new Date().toISOString(),emailBatchReceipts:delivered,
+            ...(meta.creatorEmail?{creatorEmailSent:true,creatorEmailStatus:'accepted',creatorEmailId:delivered[invites.length].id}:{})};
+          try{
+            await writeSplitMeta(splitId,meta);
+            if(meta.creatorEmailId)await writeEmailIndex(meta.creatorEmailId,{splitId,role:'creator'});
+          }catch(error){
             deliveryStateWarning='Emails were accepted, but SPLIT could not persist the batch receipt. Do not recreate the SPLIT; use the individual retry controls if needed.';
             console.error('SPLIT email batch receipt persistence:',error?.message||error);
           }
@@ -204,23 +215,29 @@ export default async function handler(req,res){
             invites[i].emailStatus='accepted';
             invites[i].emailId=delivered[i]?.id||invites[i].emailId||'';
           }
-          try{
-            await Promise.all(invites.map(async invite=>{
-              const updated={...invite,emailStatus:'accepted'};delete updated.url;
-              await saveParticipant(splitId,updated,meta);
-              if(updated.emailId)await writeEmailIndex(updated.emailId,{splitId,participantId:updated.id});
-            }));
-          }catch(error){
-            deliveryStateWarning=deliveryStateWarning||'Emails were accepted, but SPLIT could not persist every delivery status. Use the participant links below rather than recreating the SPLIT.';
-            console.error('SPLIT email state persistence:',error?.message||error);
-          }
         }
+      }
+    }
+
+    // Persisted batch receipts repair interrupted status writes without sending
+    // another batch, and retain webhook delivery and payment states.
+    if(meta.emailBatchReceipts){
+      try{
+        if(meta.creatorEmailId)await writeEmailIndex(meta.creatorEmailId,{splitId,role:'creator'});
+        for(let i=0;i<invites.length;i++){
+          const updated=await recordAcceptedEmail(meta,invites[i].id,meta.emailBatchReceipts[i].id);
+          invites[i]={...updated,url:invites[i].url};
+        }
+      }catch(error){
+        deliveryStateWarning='Emails were accepted, but some delivery records need to be refreshed. Retry the same creation request; do not recreate the SPLIT.';
+        console.error('SPLIT email receipt persistence:',error?.message||error);
       }
     }
 
     return res.status(200).json({
       success:true,splitId,adminToken,storageEnabled:true,idempotent:Boolean(existingMeta),
       emailBatchError:batchError,deliveryStateWarning,deliveryMode,emailReady:emailConfigured,
+      creatorDelivery:{email:meta.creatorEmail||'',emailSent:Boolean(meta.creatorEmailSent),emailStatus:meta.creatorEmailStatus||''},
       invites:invites.map(safePublicParticipant)
     });
   }catch(error){
