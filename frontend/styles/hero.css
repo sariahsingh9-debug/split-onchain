@@ -198,7 +198,7 @@
 .splitPreview,.splitCalculator{min-height:620px}
 .splitPreview{display:flex;flex-direction:column;padding:34px}
 .splitPreviewTop{display:flex;justify-content:space-between;align-items:flex-start;gap:20px}
-.livePill{display:inline-flex;align-items:center;gap:8px;border:1px solid #292929;border-radius:999px;padding:8px 11px;color:#aaa;font-size:12px;letter-spacing:.14em;text-transform:uppercase}
+.livePill{display:inline-flex;flex-shrink:0;white-space:nowrap;align-items:center;gap:8px;border:1px solid #292929;border-radius:999px;padding:8px 11px;color:#aaa;font-size:12px;letter-spacing:.14em;text-transform:uppercase}
 .livePill i{width:6px;height:6px;border-radius:50%;background:#fff;box-shadow:0 0 12px #fff}
 .splitPreview h3{font-size:clamp(32px,4vw,52px);margin:22px 0 8px;letter-spacing:-.07em}
 .splitTotalDisplay{font-size:clamp(58px,7vw,94px);line-height:.92;font-weight:950;letter-spacing:-.085em;margin:28px 0 12px;min-height:1em}
@@ -238,6 +238,7 @@
 .settlementGrid{display:grid;grid-template-columns:1.15fr .85fr;gap:16px;align-items:stretch}
 .settlementMain{min-height:640px;padding:34px;display:flex;flex-direction:column}
 .settlementTop{display:flex;justify-content:space-between;gap:20px;align-items:flex-start}
+.settlementTop > :first-child{min-width:0}
 .settlementTitle{font-size:clamp(34px,4.7vw,62px);line-height:.96;letter-spacing:-.075em;margin:18px 0 10px}
 .settlementIntro{color:#999;max-width:560px;line-height:1.65;font-size:14px}
 .orbitStage{position:relative;min-height:510px;margin-top:34px;border:1px solid #202020;border-radius:30px;background:
@@ -343,6 +344,7 @@ box-shadow:0 0 100px rgba(255,255,255,.09),inset -16px -20px 38px rgba(0,0,0,.55
   .orbitTrack.outer .orbitAnchor:nth-child(4){transform:rotate(315deg) translateY(-175px)}
 }
 @media(max-width:560px){
+  .settlementTop{flex-direction:column}
   .settlementMain,.settlementCard{padding:22px}
   .orbitStage{min-height:600px}
   .orbitCore{width:112px;height:112px;font-size:20px}
