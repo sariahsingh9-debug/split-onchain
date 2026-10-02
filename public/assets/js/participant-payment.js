@@ -137,7 +137,7 @@
       }
     }catch(err){
       $('payRequestState').textContent='Request unavailable';
-      $('payTitle').textContent='This link cannot be used.';
+      $('payTitle').textContent='This link cannot be used';
       $('payIntro').textContent=err?.message||'The payment request could not be verified.';
       $('payConnectBtn').style.display='none';
       setPayStatus('Ask the organizer to send a new SPLIT link.','error');

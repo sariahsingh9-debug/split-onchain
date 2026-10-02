@@ -202,12 +202,12 @@ function openLaunchWalletModal(context='launch'){
   const kicker=document.getElementById('walletChooserKicker');
   const intro=document.getElementById('walletChooserIntro');
   if(title)title.textContent=walletConnectContext==='split'
-    ? 'Choose your payout wallet.'
+    ? 'Choose your payout wallet'
     : walletConnectContext==='payment'
-      ? 'Choose the wallet you will pay with.'
+      ? 'Choose the wallet you will pay with'
       : walletConnectContext==='dashboard'
-        ? 'Choose your creator wallet.'
-        : 'Choose a launch wallet.';
+        ? 'Choose your creator wallet'
+        : 'Choose a launch wallet';
   if(kicker)kicker.textContent=walletConnectContext==='split'
     ? 'SPLIT payout'
     : walletConnectContext==='payment'
