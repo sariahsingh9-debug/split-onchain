@@ -110,6 +110,7 @@
 .flowRequestV22 strong{
   color:#000;font-size:32px;font-weight:650;line-height:1.1;letter-spacing:-.035em;font-variant-numeric:tabular-nums;margin-top:9px;
 }
+.flowRequestV22 strong.flowWordmark{color:#000;font-weight:850;line-height:1;letter-spacing:-.045em;margin:0}
 .flowRequestV22 em{
   color:#080808;font-style:normal;font-size:10px;font-weight:500;line-height:1.5;letter-spacing:0;margin-top:9px;
 }
