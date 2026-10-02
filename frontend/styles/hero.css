@@ -155,18 +155,6 @@
 .flowLineV22.l2{width:160px;right:142px;top:178px;transform:rotate(-18deg)}
 .flowLineV22.l3{width:160px;left:142px;bottom:134px;transform:rotate(-18deg)}
 .flowLineV22.l4{width:160px;right:142px;bottom:134px;transform:rotate(18deg)}
-.flowPacketV22{
-  position:absolute;width:6px;height:6px;border-radius:50%;background:#fff;
-  box-shadow:0 0 15px rgba(255,255,255,.65);z-index:4;opacity:0;
-}
-.flowPacketV22.a{animation:packetAV22 5.2s ease-in-out infinite}
-.flowPacketV22.b{animation:packetBV22 6s ease-in-out infinite 1.3s}
-.flowPacketV22.c{animation:packetCV22 5.6s ease-in-out infinite 2.4s}
-.flowPacketV22.d{animation:packetDV22 6.3s ease-in-out infinite 3s}
-@keyframes packetAV22{0%,15%{left:32%;top:33%;opacity:0}24%{opacity:1}62%{left:50%;top:50%;opacity:1}78%,100%{opacity:0}}
-@keyframes packetBV22{0%,15%{right:32%;top:33%;opacity:0}24%{opacity:1}62%{right:49%;top:50%;opacity:1}78%,100%{opacity:0}}
-@keyframes packetCV22{0%,15%{left:32%;bottom:27%;opacity:0}24%{opacity:1}62%{left:50%;bottom:49%;opacity:1}78%,100%{opacity:0}}
-@keyframes packetDV22{0%,15%{right:32%;bottom:27%;opacity:0}24%{opacity:1}62%{right:49%;bottom:49%;opacity:1}78%,100%{opacity:0}}
 .flowFooterV22{
   position:absolute;left:24px;right:24px;bottom:22px;
   display:flex;justify-content:space-between;gap:14px;align-items:center;
