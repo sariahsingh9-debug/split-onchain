@@ -15,6 +15,7 @@
 .hero.heroV22:before{display:none}
 .heroCopyV22{position:relative;z-index:3;max-width:790px;align-self:start}
 .heroMetaV22{
+  position:relative;top:12px;
   display:flex;align-items:center;gap:12px;
   color:#999;font-size:12px;font-weight:800;
   letter-spacing:.16em;text-transform:uppercase;
