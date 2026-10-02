@@ -27,7 +27,7 @@
     history.pushState({page:'home'},'',url);
     d('creatorDashboardPage').style.display='none';
     d('app').style.display='block';
-    document.title='SPLIT | Group Payments & Launchpad';
+    document.title='SPLIT | Group Payments & Launches';
     window.scrollTo({top:0,behavior:'instant'});
   }
   function dashboardGoTokens(e){

@@ -4,7 +4,7 @@ const qsa=(s,r=document)=>Array.from(r.querySelectorAll(s));
 const live=document.createElement('div');live.className='spx-live';live.setAttribute('aria-live','polite');live.setAttribute('aria-atomic','true');document.body.prepend(live);
 const skip=document.createElement('a');skip.className='spx-skip';skip.href='#main-content';skip.textContent='Skip to main content';document.body.prepend(skip);
 const main=qs('main')||qs('[role="main"]')||qs('section');if(main&&!main.id)main.id='main-content';if(main)skip.href='#'+main.id;
-document.title='SPLIT | Group Payments & Launchpad';
+document.title='SPLIT | Group Payments & Launches';
 let meta=qs('meta[name="description"]');if(!meta){meta=document.createElement('meta');meta.name='description';document.head.appendChild(meta)}meta.content='Create group payment requests, track participant payments, and launch Solana tokens through SPLIT.';
 qsa('a[target="_blank"]').forEach(a=>{const rel=new Set(String(a.rel||'').split(/\s+/).filter(Boolean));rel.add('noopener');rel.add('noreferrer');a.rel=Array.from(rel).join(' ')});
 
