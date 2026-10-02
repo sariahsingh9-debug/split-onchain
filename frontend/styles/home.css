@@ -450,7 +450,7 @@
  .orbitStage .networkNode small{font-size:10px;letter-spacing:0}
  .orbitStage .orbitCore{top:80px}
  .orbitStage .coreHalo{top:80px;width:150px;height:150px}
- .orbitStage .routeSvg,.orbitStage .packet{display:none}
+ .orbitStage .routeSvg{display:none}
  .orbitStage .orbitCaption{bottom:10px;font-size:11px;line-height:1.4}
  .orbitCore:after{bottom:-26px}
  .cultureTopV47 h2{font-size:clamp(36px,12vw,60px)}

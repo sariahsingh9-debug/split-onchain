@@ -284,13 +284,6 @@ nav{
 .routeLineV47{
   position:relative;z-index:2;height:1px;background:#303030;
 }
-.routeLineV47 i{
-  position:absolute;top:-2px;width:5px;height:5px;border-radius:50%;background:#fff;
-  animation:v47Packet 3.8s linear infinite;
-}
-.routeLineV47 i:nth-child(2){animation-delay:1.25s}
-.routeLineV47 i:nth-child(3){animation-delay:2.5s}
-@keyframes v47Packet{0%{left:0;opacity:0}10%{opacity:1}90%{opacity:1}100%{left:100%;opacity:0}}
 .routeDestV47{
   position:relative;z-index:2;display:grid;gap:7px;
 }
@@ -343,7 +336,7 @@ nav{
 }
 @media(prefers-reduced-motion:reduce){
   [data-reveal]{opacity:1;transform:none;transition:none}
-  .tokenOrbitV47 i,.routeLineV47 i{animation:none}
+  .tokenOrbitV47 i{animation:none}
 }
 html{scroll-behavior:smooth}
 body{scrollbar-color:#303030 #070707}
