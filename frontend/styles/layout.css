@@ -5,15 +5,6 @@
   --v47-soft:rgba(255,255,255,.035);
   --v47-muted:#777;
 }
-body:before{
-  content:"";
-  position:fixed;
-  inset:0;
-  pointer-events:none;
-  z-index:9999;
-  opacity:.022;
-  background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 180 180' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='.8'/%3E%3C/svg%3E");
-}
 nav{
   background:linear-gradient(180deg,rgba(5,5,5,.88),rgba(5,5,5,.64));
   backdrop-filter:blur(18px) saturate(125%);
@@ -284,6 +275,13 @@ nav{
 .routeLineV47{
   position:relative;z-index:2;height:1px;background:#303030;
 }
+.routeLineV47 i{
+  position:absolute;top:-2px;width:5px;height:5px;border-radius:50%;background:#fff;
+  animation:v47Packet 3.8s linear infinite;
+}
+.routeLineV47 i:nth-child(2){animation-delay:1.25s}
+.routeLineV47 i:nth-child(3){animation-delay:2.5s}
+@keyframes v47Packet{0%{left:0;opacity:0}10%{opacity:1}90%{opacity:1}100%{left:100%;opacity:0}}
 .routeDestV47{
   position:relative;z-index:2;display:grid;gap:7px;
 }
@@ -336,7 +334,7 @@ nav{
 }
 @media(prefers-reduced-motion:reduce){
   [data-reveal]{opacity:1;transform:none;transition:none}
-  .tokenOrbitV47 i{animation:none}
+  .tokenOrbitV47 i,.routeLineV47 i{animation:none}
 }
 html{scroll-behavior:smooth}
 body{scrollbar-color:#303030 #070707}
