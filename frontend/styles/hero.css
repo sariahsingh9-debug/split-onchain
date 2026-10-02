@@ -345,18 +345,18 @@ box-shadow:0 0 100px rgba(255,255,255,.09),inset -16px -20px 38px rgba(0,0,0,.55
 @media(max-width:560px){
   .settlementTop{flex-direction:column}
   .settlementMain,.settlementCard{padding:22px}
-  .orbitStage{min-height:600px}
-  .orbitCore{width:112px;height:112px;font-size:20px}
-  .networkNode{min-width:104px;padding:10px 11px;border-radius:15px}
-  .networkNode strong{font-size:12px}
-  .networkNode small{font-size:12px;letter-spacing:.08em}
-  .networkNode.solana{left:4%;top:12%}
-  .networkNode.ethereum{left:50%;top:4%}
-  .networkNode.base{right:3%;top:13%}
-  .networkNode.arbitrum{right:2%;top:42%}
-  .networkNode.optimism{right:4%;bottom:11%}
-  .networkNode.polygon{left:50%;bottom:3%}
-  .networkNode.avalanche{left:4%;bottom:12%}
-  .networkNode.bnb{left:2%;top:42%}
   .settlementStatus{grid-template-columns:1fr}
+}
+
+/* Keep mobile network cards in normal grid flow instead of desktop orbit positions. */
+@media(max-width:620px){
+  .orbitStage{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;padding:180px 12px 24px;min-height:0}
+  .orbitStage .networkNode{position:relative;inset:auto;min-width:0;width:auto;transform:none;animation:none;padding:12px 10px;border-radius:15px}
+  .orbitStage .networkNode strong{font-size:12px}
+  .orbitStage .networkNode small{font-size:10px;letter-spacing:0;overflow-wrap:anywhere}
+  .orbitStage .networkNode .top{gap:7px}
+  .orbitStage .networkNode .dot{flex:0 0 6px;width:6px;height:6px}
+  .orbitStage .orbitCore{top:80px;width:112px;height:112px;font-size:20px}
+  .orbitStage .coreHalo{top:80px;width:150px;height:150px}
+  .orbitStage .routeSvg,.orbitStage .packet{display:none}
 }

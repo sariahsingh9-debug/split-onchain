@@ -131,8 +131,10 @@
   }
   .root .flowRingV22{width:220px!important;height:220px!important}
   .root .flowRingV22:before{width:290px!important;height:290px!important}
-  .root .flowRequestV22{width:124px!important;height:124px!important}
-  .root .flowRequestV22 strong{font-size:20px!important}
+  .root .flowRequestV22{width:124px!important;height:124px!important;padding:12px!important}
+  .root .flowRequestV22 small{font-size:9px!important;line-height:1.3!important;letter-spacing:.08em!important;white-space:nowrap}
+  .root .flowRequestV22 strong{font-size:20px!important;line-height:1.1!important}
+  .root .flowRequestV22 em{font-size:10px!important;line-height:1.3!important;max-width:96px;margin-top:4px;white-space:normal}
   .root .flowPersonV22{width:106px!important;padding:9px 10px!important}
   .root .flowPersonV22.p1{left:10px!important;top:102px!important}
   .root .flowPersonV22.p2{right:10px!important;top:102px!important}

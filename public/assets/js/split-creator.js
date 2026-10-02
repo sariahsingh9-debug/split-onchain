@@ -39,10 +39,10 @@
   };
 
   const el=id=>document.getElementById(id);
-  let selectedNetwork='solana';
-  let selectedAsset='USDC';
-  let networkLocked=true;
-  let assetLocked=true;
+  let selectedNetwork='';
+  let selectedAsset='';
+  let networkLocked=false;
+  let assetLocked=false;
   let payoutMode='connect';
   let creatorWallet='';
   let deliveryMode='link';
@@ -61,7 +61,7 @@
   }
 
   function net(){return NETWORKS[selectedNetwork]}
-  function asset(){return net().assets.find(a=>a.symbol===selectedAsset)||net().assets[0]}
+  function asset(){return net()?.assets.find(a=>a.symbol===selectedAsset)||net()?.assets[0]}
   function fmt(v){return Number(v).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:6})}
   function emailLooksValid(v){
     return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(String(v||'').trim());
@@ -143,6 +143,7 @@
     }
 
     box.className='sc-network-grid';
+    el('scNetworkHelp').textContent='Choose one network to continue.';
     Object.entries(NETWORKS).forEach(([key,n])=>{
       const b=document.createElement('button');
       b.type='button';
@@ -170,6 +171,11 @@
   function renderAssets(){
     const box=el('scAssetGrid');
     box.innerHTML='';
+    if(!net()){
+      box.className='sc-asset-grid';
+      el('scAssetHelp').textContent='Choose a network first to see its available assets.';
+      return;
+    }
     if(assetLocked){
       box.className='sc-selection-row';
       const a=asset();
@@ -218,6 +224,7 @@
 
   function validAddress(v){
     v=(v||'').trim();
+    if(!net())return false;
     if(net().family==='solana') return /^[1-9A-HJ-NP-Za-km-z]{32,44}$/.test(v);
     return /^0x[a-fA-F0-9]{40}$/.test(v);
   }
@@ -225,16 +232,18 @@
   function recipient(){return payoutMode==='connect'?creatorWallet:el('scManualAddress').value.trim()}
 
   function updateAddressUI(){
-    const isSol=net().family==='solana';
-    el('scManualLabel').textContent=isSol?'Receiving Solana address':'Receiving EVM address';
-    el('scManualAddress').placeholder=isSol?'Solana wallet address':'0x…';
-    el('scWalletStatus').textContent='Connect a '+net().name+' compatible wallet.';
+    const n=net(),isSol=n?.family==='solana';
+    el('scConnectBtn').disabled=!n;
+    el('scManualAddress').disabled=!n;
+    el('scManualLabel').textContent=!n?'Receiving address':isSol?'Receiving Solana address':'Receiving EVM address';
+    el('scManualAddress').placeholder=!n?'Choose a network first':isSol?'Solana wallet address':'0x…';
+    el('scWalletStatus').textContent=n?'Connect a '+n.name+' compatible wallet.':'Choose a network, then connect a matching wallet.';
     updateRecipient();
   }
 
   function updateRecipient(){
     const r=recipient();
-    el('scSumRecipient').textContent=validAddress(r)?r.slice(0,8)+'…'+r.slice(-6):(payoutMode==='manual'?'Enter address':'Connect wallet');
+    el('scSumRecipient').textContent=!net()?'Choose network':validAddress(r)?r.slice(0,8)+'…'+r.slice(-6):(payoutMode==='manual'?'Enter address':'Connect wallet');
   }
 
   function stopCreatorCounter(){
@@ -261,12 +270,13 @@
   function finishCreatorCounter(){creatorCounterDemo=false;stopCreatorCounter()}
 
   function calculate(){
-    const people=[...document.querySelectorAll('#scPeople .sc-person')],count=people.length,sym=asset().symbol;
+    const people=[...document.querySelectorAll('#scPeople .sc-person')],count=people.length,sym=asset()?.symbol||'';
     const decimals=sym==='SOL'?9:['ETH','POL','AVAX','BNB'].includes(sym)||selectedNetwork==='bnb'?18:6;
     let shares=[];
-    try{shares=SPLIT_AMOUNT.equal(el('scTotal').value,count,decimals)}catch{}
+    try{if(net()&&sym)shares=SPLIT_AMOUNT.equal(el('scTotal').value,count,decimals)}catch{}
     const format=v=>SPLIT_AMOUNT.display(v)+' '+sym;
-    el('scNetworkBadge').textContent=net().name;el('scAssetBadge').textContent=sym;
+    el('scNetworkBadge').textContent=net()?.name||'Choose network';el('scAssetBadge').textContent=sym||'Choose asset';
+    el('scCreateSplit').disabled=!paymentCreationReady||!net()||!sym;
     el('scSumTotal').textContent=shares.length?format(SPLIT_AMOUNT.decimal(SPLIT_AMOUNT.units(el('scTotal').value,decimals),decimals)):'—';el('scSumPeople').textContent=count;
     const each=shares.length?(shares.every(x=>x===shares[0])?format(shares[0]):format(shares.at(-1))+' – '+format(shares[0])):'—';
     creatorCounterTarget={text:each,units:shares.length&&shares.every(x=>x===shares[0])?SPLIT_AMOUNT.units(shares[0],decimals):0n,decimals,symbol:sym};
@@ -292,7 +302,7 @@
       el('scModeEmail').title=emailReady?'Send payment links by email':'Email invitations are unavailable; share links instead.';
       el('scAvailability').textContent=paymentCreationReady?'Payments go directly to your receiving wallet. Review the network and exact shares before creating.':'Live payment creation is paused while payment records are secured. You can explore the form and calculator.';
     }catch{paymentCreationReady=false;el('scAvailability').textContent='Payment availability could not be checked. Please try again shortly.'}
-    el('scCreateSplit').disabled=!paymentCreationReady;
+    el('scCreateSplit').disabled=!paymentCreationReady||!net()||!asset();
   }
 
   function addPerson(name='',email=''){
@@ -332,6 +342,7 @@
 
   async function connectWallet(){
     const n=net();
+    if(!n){el('scWalletStatus').textContent='Choose a network first.';return;}
     try{
       if(n.family==='solana'){
         window.onSplitWalletConnected=(address,walletName)=>{
@@ -368,7 +379,7 @@
   el('scManualAddress').addEventListener('input',()=>{
     resetCreateSplitRequestId();
     const ok=validAddress(el('scManualAddress').value);
-    el('scManualStatus').textContent=ok?'Valid '+net().name+' address format.':'Enter a valid '+net().name+' address.';
+    el('scManualStatus').textContent=!net()?'Choose a network first.':ok?'Valid '+net().name+' address format.':'Enter a valid '+net().name+' address.';
     updateRecipient();
   });
   el('scConnectBtn').addEventListener('click',connectWallet);
@@ -525,6 +536,7 @@
     const people=participantRows();
     const r=recipient();
 
+    if(!net()||!selectedAsset){el('scCreateStatus').textContent='Choose a network and payment asset first.';return}
     if(!name){el('scCreateStatus').textContent='Add a name for the SPLIT.';return}
     if(total<=0){el('scCreateStatus').textContent='Enter a positive total amount.';return}
     if(people.length<2){el('scCreateStatus').textContent='Add at least 2 participants.';return}

@@ -21,6 +21,11 @@ try{
   assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth),false);
   await page.evaluate(()=>window.showSplitCreator());
   assert.equal(await page.locator('.sc-person-email').first().isVisible(),false);
+  assert.equal(await page.locator('#scNetworkGrid .selected').count(),0);
+  assert.equal(await page.locator('#scAssetGrid button').count(),0);
+  assert.equal(await page.locator('#scConnectBtn').isDisabled(),true);
+  assert.equal(await page.locator('#scSumEach').textContent(),'—');
+  await page.locator('#scNetworkGrid button').filter({hasText:'Solana ecosystem'}).click();
   assert.equal(await page.locator('#scSumEach').textContent(),'300.00 USDC');
   assert.equal(await page.locator('#splitCreatorPage').isVisible(),true);
   await page.screenshot({path:path.join(artifactDir,'improved-form-'+width+'.png'),fullPage:true});
