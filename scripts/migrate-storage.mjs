@@ -9,7 +9,7 @@ if(copy===verify)throw new Error('Choose --copy or --verify.');
 const options={lazyConnect:true,maxRetriesPerRequest:2,connectTimeout:5000,commandTimeout:10000};
 const source=new Redis(process.env.SOURCE_REDIS_URL,options),target=new Redis(process.env.TARGET_REDIS_URL,options);
 source.on('error',()=>{});target.on('error',()=>{});
-const prefixes=['split-requests/','payment-pending/','payment-tx-index/','creator-index/','launch-directory/','revenue-pending/','email-index/'];
+const prefixes=['split-requests/','payment-pending/','payment-tx-index/','creator-index/','launch-directory/','launch-pending/','revenue-pending/','email-index/'];
 try{
  await source.connect();await target.connect();
  const info=await target.info('persistence');

@@ -1,6 +1,7 @@
 import { Connection, PublicKey } from '@solana/web3.js';
 import { creatorSession } from './_creator-utils.js';
 import { quoteInitialBuyUsd } from './_sol-price.js';
+import {requireDurableStorage} from './_blob-store.js';
 
 function bodyOf(req){if(typeof req.body==='string')return JSON.parse(req.body||'{}');return req.body||{}}
 
@@ -16,8 +17,9 @@ export default async function handler(req,res){
     const quote=await quoteInitialBuyUsd(body.initialBuyUsd);
     const network=process.env.SOLANA_NETWORK||'solana-devnet';
     if(!['solana-devnet','solana-mainnet'].includes(network))throw new Error('SOLANA_NETWORK must be solana-devnet or solana-mainnet.');
+    if(network==='solana-mainnet')await requireDurableStorage();
     const rpc=process.env.SOLANA_RPC_URL||(network==='solana-mainnet'?'https://api.mainnet-beta.solana.com':'https://api.devnet.solana.com');
-    const connection=new Connection(rpc,'confirmed');
+    const connection=new Connection(rpc,{commitment:'confirmed',disableRetryOnRateLimit:true,fetch:(url,options)=>fetch(url,{...options,signal:AbortSignal.timeout(8000)})});
     const balanceLamports=await connection.getBalance(new PublicKey(session.wallet),'confirmed');
 
     if(balanceLamports<quote.lamports){
@@ -39,6 +41,6 @@ export default async function handler(req,res){
   }catch(error){
     const message=String(error?.message||'Launch preflight failed.');
     const auth=/login|required|expired|authenticated|wallet does not match/i.test(message);
-    return res.status(auth?401:400).json({success:false,error:message});
+    return res.status(auth?401:error.code==='STORAGE_NOT_DURABLE'?503:400).json({success:false,error:message});
   }
 }

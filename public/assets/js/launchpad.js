@@ -643,7 +643,7 @@ async function sendLaunchTransaction(base64Tx,network){
       account:launchWalletSession.account,
       chain
     });
-    const signature=result?.signature;
+    const signature=(Array.isArray(result)?result[0]:result)?.signature;
     if(!signature)throw new Error('Wallet did not return a transaction signature.');
     return typeof signature==='string'?signature:await bytesToBase58(signature);
   }
@@ -683,72 +683,78 @@ async function waitForSignature(signature,network,timeoutMs=65000){
   }
   throw new Error(lastError||'Transaction confirmation timed out. Check the wallet before retrying.');
 }
+const LAUNCH_RECOVERY_KEY='split-launch-recovery-v1';
+function pendingLaunch(){
+  try{return JSON.parse(localStorage.getItem(LAUNCH_RECOVERY_KEY)||'null')}catch{return null}
+}
+function saveLaunchRecovery(record){
+  // Refuse to open a wallet approval unless its recovery data has been saved.
+  localStorage.setItem(LAUNCH_RECOVERY_KEY,JSON.stringify(record));
+}
 async function productionLaunch(config){
-  await refreshLaunchServiceConfig();
-  if(!launchServiceConfig?.launchReady)throw new Error('Launch services are temporarily unavailable. Please try again shortly.');
-  
-  const preflight=await launchPreflightV72(config);
-  const imageFile=document.getElementById('launchImage')?.files?.[0]||null;
-  const bannerFile=document.getElementById('launchBanner')?.files?.[0]||null;
-
-  setLaunchError(`Initial buy ready: $${preflight.amountUsd.toFixed(2)} ≈ ${Number(preflight.sol).toFixed(6)} SOL. Uploading token media permanently...`);
-  const imageUrl=await uploadOneLaunchFile(imageFile,'token-image');
-  const bannerUrl=bannerFile?await uploadOneLaunchFile(bannerFile,'banner'):null;
-
-  setLaunchError('Preparing the token launch...');
-  const buildRes=await fetch('/api/create-launch',{
-    method:'POST',
-    headers:{'content-type':'application/json','authorization':'Bearer '+launchAuthTokenV72},
-    body:JSON.stringify({config,imageUrl,bannerUrl})
+  if(navigator.locks)return navigator.locks.request('split-launch', {ifAvailable:true},async lock=>{
+    if(!lock)throw new Error('A launch is already running in another tab.');
+    return resumeOrCreateLaunch(config);
   });
-  const built=await buildRes.json().catch(()=>({}));
-  if(!buildRes.ok||!built?.success)throw new Error(built?.error||'Could not prepare the token launch.');
-
-  const allTransactions=[
-    ...(Array.isArray(built.routerTransactions)?built.routerTransactions:[]),
-    ...(Array.isArray(built.transactions)?built.transactions:[])
-  ];
-  if(!allTransactions.length)throw new Error('Launch service returned no launch transactions.');
-
-  const signatures=[];
-  for(let i=0;i<allTransactions.length;i++){
-    const firstBuyText=i===0&&built?.initialBuy?.sol?` · includes ≈ ${Number(built.initialBuy.sol).toFixed(6)} SOL first buy`:'';
-    setLaunchError(`Approve launch transaction ${i+1} of ${allTransactions.length}${firstBuyText} in ${launchWalletSession?.name||'your wallet'}...`);
-    const sig=await sendLaunchTransaction(allTransactions[i],built.network);
-    signatures.push(sig);
-    setLaunchError(`Confirming launch transaction ${i+1} of ${allTransactions.length}...`);
-    await waitForSignature(sig,built.network);
+  return resumeOrCreateLaunch(config);
+}
+async function resumeOrCreateLaunch(config){
+  await refreshLaunchServiceConfig();
+  let recovery=pendingLaunch();
+  if(recovery){
+    if(recovery.config.wallet!==launchWalletAddress)throw new Error('Reconnect the wallet used for the existing launch to resume it.');
+    if(recovery.built.network!==launchServiceConfig?.network)throw new Error('This saved launch uses a different Solana network. Contact SPLIT support with its mint address before starting another launch.');
+    config=recovery.config;
+    await ensureLaunchAuthV72();
+  }else{
+    if(!launchServiceConfig?.launchReady)throw new Error('Launch services are temporarily unavailable. Please try again shortly.');
+    const preflight=await launchPreflightV72(config);
+    const imageFile=document.getElementById('launchImage')?.files?.[0]||null;
+    const bannerFile=document.getElementById('launchBanner')?.files?.[0]||null;
+    setLaunchError(`Initial buy ready: $${preflight.amountUsd.toFixed(2)} ≈ ${Number(preflight.sol).toFixed(6)} SOL. Uploading token media permanently...`);
+    const imageUrl=await uploadOneLaunchFile(imageFile,'token-image');
+    const bannerUrl=bannerFile?await uploadOneLaunchFile(bannerFile,'banner'):null;
+    setLaunchError('Preparing the token launch...');
+    const buildRes=await fetch('/api/create-launch',{
+      method:'POST',headers:{'content-type':'application/json','authorization':'Bearer '+launchAuthTokenV72},
+      body:JSON.stringify({config,imageUrl,bannerUrl})
+    });
+    const built=await buildRes.json().catch(()=>({}));
+    if(!buildRes.ok||!built?.success)throw new Error(built?.error||'Could not prepare the token launch.');
+    recovery={config,built,imageUrl,bannerUrl,signatures:[]};
+    saveLaunchRecovery(recovery);
   }
-
-  setLaunchError('Registering launch...');
+  const {built,imageUrl,bannerUrl,signatures}=recovery;
+  const allTransactions=[...(built.routerTransactions||[]),...(built.transactions||[])];
+  if(!allTransactions.length)throw new Error('Launch service returned no launch transactions.');
+  for(let i=0;i<allTransactions.length;i++){
+    if(!signatures[i]){
+      // A closed page can lose the wallet response even though the wallet sent it.
+      if(recovery.awaitingWallet===i)throw new Error('Check your wallet history before continuing. A launch approval was interrupted. Do not send another launch transaction; contact SPLIT support with mint '+built.mintAddress+'.');
+      recovery.awaitingWallet=i;saveLaunchRecovery(recovery);
+      setLaunchError(`Approve launch transaction ${i+1} of ${allTransactions.length} in ${launchWalletSession?.name||'your wallet'}...`);
+      try{signatures[i]=await sendLaunchTransaction(allTransactions[i],built.network)}catch(error){
+        // Only explicit user rejection is known not to have been broadcast.
+        if(error?.code===4001||/user rejected|user declined|user canceled/i.test(error?.message||'')){delete recovery.awaitingWallet;saveLaunchRecovery(recovery)}
+        throw error;
+      }
+      delete recovery.awaitingWallet;saveLaunchRecovery(recovery);
+    }
+    setLaunchError(`Confirming launch transaction ${i+1} of ${allTransactions.length}...`);
+    await waitForSignature(signatures[i],built.network);
+  }
+  setLaunchError('Registering the existing launch...');
   const registerRes=await fetch('/api/register-launch',{
-    method:'POST',
-    headers:{'content-type':'application/json','authorization':'Bearer '+launchAuthTokenV72},
-    body:JSON.stringify({
-      genesisAccount:built.genesisAccount,
-      creatorWallet:launchWalletAddress,
-      launch:built.launch,
-      network:built.network,
-      routingId:built.routingId||null,
-      routingToken:built.routingToken||null,
-      mintAddress:built.mintAddress
-    })
+    method:'POST',headers:{'content-type':'application/json','authorization':'Bearer '+launchAuthTokenV72},
+    body:JSON.stringify({genesisAccount:built.genesisAccount,creatorWallet:config.wallet,launch:built.launch,network:built.network,routingId:built.routingId,routingToken:built.routingToken,mintAddress:built.mintAddress})
   });
   const registered=await registerRes.json().catch(()=>({}));
-  if(!registerRes.ok||!registered?.success)throw new Error(registered?.error||'Token was created but launch registration failed.');
-
-  return {
-    mintAddress:registered?.token?.mintAddress||built.mintAddress,
-    signature:signatures[signatures.length-1]||'',
-    signatures,
-    launchUrl:registered?.launch?.link||'',
-    routingId:registered?.routingId||built.routingId||null,
-    routingToken:registered?.routingToken||built.routingToken||null,
-    bannerUrl,
-    imageUrl,
-    initialBuy:built.initialBuy||null
-  };
+  if(!registerRes.ok||!registered?.success)throw new Error(registered?.error||'Launch registration is pending. Resume this existing launch; do not create it again.');
+  localStorage.removeItem(LAUNCH_RECOVERY_KEY);
+  return {mintAddress:registered?.token?.mintAddress||built.mintAddress,signature:signatures.at(-1)||'',signatures,
+    launchUrl:registered?.launch?.link||'',routingId:built.routingId,routingToken:built.routingToken,bannerUrl,imageUrl,initialBuy:built.initialBuy||null};
 }
+
 window.SPLIT_LAUNCH_ADAPTER={launch:productionLaunch};
 
 function showLaunchResultV57(item){
@@ -814,8 +820,8 @@ async function launchProject(){
       setLaunchError('Choose a wallet to continue.');
       return;
     }
-    const config=getLaunchConfig();
-    const err=validateLaunchConfig(config);
+    const config=pendingLaunch()?.config||getLaunchConfig();
+    const err=pendingLaunch()?null:validateLaunchConfig(config);
     if(err)return setLaunchError(err);
 
     button.disabled=true;
@@ -850,8 +856,11 @@ async function launchProject(){
     console.error(e);
     setLaunchError(e?.message||'Launch failed.');
     button.disabled=false;
-    button.textContent='Launch token';
+    button.textContent=pendingLaunch()?'Resume existing launch':'Launch token';
   }
+}
+if(pendingLaunch()){
+  const button=document.getElementById('deployButton');if(button)button.textContent='Resume existing launch';
 }
 document.querySelectorAll('.navlinks a[href^="#"]').forEach(a=>a.addEventListener('click',e=>{e.preventDefault();scrollToId(a.getAttribute('href').slice(1))}));
 document.querySelector('.navactions .navLaunchpadV62')?.addEventListener('click',e=>{e.preventDefault();openLaunchCreator()});

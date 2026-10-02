@@ -1,6 +1,7 @@
 import reconcile from './reconcile-payments.js';
 import monitor from './operations-monitor.js';
 import {reportError} from './_operations.js';
+import {recoverLaunches} from './_launch-recovery.js';
 
 export function startRecoveryScheduler(){
   if(!process.env.CRON_SECRET||process.env.SPLIT_STORAGE_MAINTENANCE==='true')return ()=>{};
@@ -13,6 +14,7 @@ export function startRecoveryScheduler(){
         await handler({method:'POST',headers:{authorization:`Bearer ${process.env.CRON_SECRET}`},body:'{}',requestId:'scheduled-'+Date.now()}, {setHeader(){return this},status(value){status=value;return this},json(value){result=value;return this}});
         console.log(JSON.stringify({level:status>=500?'error':'info',event:'scheduled_'+name,status,...result}));
       }
+      await recoverLaunches();
     }catch{await reportError({event:'scheduler_failed',route:'internal-scheduler',status:503})}
     finally{running=false}
   }

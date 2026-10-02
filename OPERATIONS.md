@@ -44,3 +44,28 @@ Do not upgrade the current free instance in place: Render discards its data duri
 4. Configure the Render service health check as `/healthz`. For always-on recovery, move the web service to a paid instance and configure the native two-minute reconciliation cron described above.
 
 The service now builds the frontend in `prestart`; edits no longer depend on remembering to refresh generated files manually. Node 24 is the supported runtime. The validation workflow runs the build, source checks, backend tests and desktop/mobile browser flows on every push and PR.
+
+## Interrupted token launches
+
+Launch preparation now saves a private `launch-pending/` record before returning
+unsigned transactions to the browser. The internal two-minute scheduler checks
+for the existing Genesis account, retries provider registration, and removes the
+recovery record only after both directory and creator indexing succeed. It never
+signs or broadcasts a launch transaction. Migration copies this recovery queue.
+
+The browser saves preparation and each returned signature before confirmation.
+Retry uses those signatures and the same launch rather than requesting another
+mint. If a wallet approval was interrupted before its response reached the page,
+repeated broadcasting is blocked; check wallet history and the creator dashboard.
+Wallet Standard array outputs are supported when reading transaction signatures.
+
+Production activation remains blocked by the actual free Key Value instance
+(`persistenceMode: off`) and free web service. The prepared target is a NEW
+Virginia Key Value instance with plan `256mb`, `noeviction`, and
+`journal_snapshot`, plus an always-on web service (`0.5c-512mb`). Obtain recurring
+budget authorization before provisioning these resources. Keep the source KV
+intact, pause writes, copy and verify, switch REDIS_URL, then confirm durability.
+Only then set SOLANA_NETWORK=solana-mainnet with a matching mainnet RPC. Verify
+permanent media upload funding and the router payer's mainnet balance, and perform
+wallet-approved launch, registration, split payment, interrupted response, and
+revenue routing tests before announcing that the complete mainnet flow passed.

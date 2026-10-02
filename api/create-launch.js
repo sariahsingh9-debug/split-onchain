@@ -7,6 +7,7 @@ import { creatorSession } from './_creator-utils.js';
 import { FIXED_ROUTING } from './_launch-policy.js';
 import { quoteInitialBuyUsd } from './_sol-price.js';
 import {reportError} from './_operations.js';
+import {savePreparedLaunch} from './_launch-recovery.js';
 
 function bodyOf(req){if(typeof req.body==='string')return JSON.parse(req.body||'{}');return req.body||{}}
 function clean(v,max){return String(v??'').trim().slice(0,max)}
@@ -89,6 +90,7 @@ export default async function handler(req,res){
       createdAt:new Date().toISOString()
     };
     const routingToken=signRoutingPayload(routingPayload,masterSecret);
+    await savePreparedLaunch({genesisAccount:out.genesisAccount,creatorWallet:wallet,launch:payload.launch,network,routingId,routingToken,mintAddress:out.mintAddress});
     return res.status(200).json({success:true,network,transactions:out.transactions,routerTransactions:[],blockhash:out.blockhash,mintAddress:out.mintAddress,genesisAccount:out.genesisAccount,launch:payload.launch,feeWallet:feeWallet.publicKey.toBase58(),routingId,routingToken,bannerUrl:banner||null,initialBuy:{usd:firstBuy.amountUsd,sol:firstBuy.sol,solUsdPrice:firstBuy.solUsdPrice}});
   }catch(error){
     console.error(error);

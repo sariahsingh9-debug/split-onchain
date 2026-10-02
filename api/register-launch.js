@@ -1,5 +1,5 @@
 import {reportError} from './_operations.js';
-import { put } from './_blob-store.js';
+import { put, del, acquireLease } from './_blob-store.js';
 import { verifyRoutingToken, validSolanaAddress } from './_routing-utils.js';
 import { writeCreatorLaunchIndex, creatorSession } from './_creator-utils.js';
 
@@ -42,21 +42,12 @@ async function fetchWithRetry(url,options={},attempts=3){
   throw last||new Error('Metaplex unavailable.');
 }
 
-export default async function handler(req,res){
-  res.setHeader('Cache-Control','no-store');
-  if(req.method!=='POST')return res.status(405).json({success:false,error:'Method not allowed'});
+export async function registerSignedLaunch(body){
+  const {genesisAccount,creatorWallet,launch,network,routingId,routingToken,mintAddress}=body;
+  if(!validSolanaAddress(genesisAccount)||!launch||!validSolanaAddress(creatorWallet))throw new Error('Invalid launch registration data.');
+  const release=await acquireLease(`launch-register-lock/${routingId}`,180);
+  if(!release)throw new Error('Launch registration is already running. Try again shortly.');
   try{
-    const session=creatorSession(req);
-    if(session.family!=='solana')return res.status(401).json({success:false,error:'A Solana launch wallet is required.'});
-    const body=bodyOf(req);
-    const {genesisAccount,creatorWallet,launch,network='solana-devnet',routingId,routingToken,mintAddress}=body;
-
-    if(session.wallet!==creatorWallet)return res.status(401).json({success:false,error:'Launch wallet does not match the authenticated wallet.'});
-
-    if(!validSolanaAddress(genesisAccount)||!launch||!validSolanaAddress(creatorWallet)){
-      return res.status(400).json({success:false,error:'Missing or invalid launch registration data.'});
-    }
-
     const masterSecret=process.env.SPLIT_ROUTER_MASTER_SECRET;
     if(!masterSecret||masterSecret.length<32)throw new Error('SPLIT routing is not configured.');
 
@@ -85,11 +76,8 @@ export default async function handler(req,res){
     );
     const out=await register.json().catch(()=>({}));
     if(!register.ok||!out?.success){
-      void reportError({event:'launch_registration_provider_failed',route:'/api/register-launch',status:register.ok?502:register.status,requestId:req.requestId});
-      return res.status(register.ok?502:register.status).json({
-        success:false,
-        error:out?.error?.message||out?.error||'Metaplex launch registration failed.'
-      });
+      void reportError({event:'launch_registration_provider_failed',route:'/api/register-launch',status:register.ok?502:register.status,requestId:'launch-recovery'});
+      throw new Error('Metaplex launch registration is pending. Retry this existing launch after confirmation.');
     }
 
     const finalMint=clean(out?.token?.mintAddress||mintAddress||route.mintAddress,80);
@@ -129,20 +117,15 @@ export default async function handler(req,res){
       if(!directoryPersisted){
         console.error('Launch registered but immediate durable indexing failed:',lastStorageError?.message||lastStorageError);
         directoryWarning='Token launched and registered. SPLIT is retrying the Tokens directory update in the background.';
-        try{
-          req.waitUntil?.(
-            persistDirectoryRecord(record,route,routingToken,8)
-              .catch(error=>console.error('Background token-directory retry failed:',error?.message||error))
-          );
-        }catch(error){
-          console.error('Could not start background token-directory retry:',error?.message||error);
-        }
+
       }
     }else{
       directoryWarning='Token launched and registered, but signed directory metadata was incomplete.';
     }
 
-    return res.status(200).json({
+    if(!directoryPersisted)throw new Error(directoryWarning||'Launch indexing is pending.');
+    await del(`launch-pending/${routingId}.json`);
+    return {
       ...out,
       success:true,
       token:{...(out?.token||{}),...(finalMint?{mintAddress:finalMint}:{})},
@@ -151,11 +134,20 @@ export default async function handler(req,res){
       routingToken,
       directoryPersisted,
       directoryWarning
-    });
+    };
+  }finally{await release()}
+}
+
+export default async function handler(req,res){
+  res.setHeader('Cache-Control','no-store');
+  if(req.method!=='POST')return res.status(405).json({success:false,error:'Method not allowed'});
+  try{
+    const session=creatorSession(req),body=bodyOf(req);
+    if(session.family!=='solana'||session.wallet!==body.creatorWallet)return res.status(401).json({success:false,error:'Launch wallet does not match the authenticated wallet.'});
+    return res.status(200).json(await registerSignedLaunch(body));
   }catch(error){
-    console.error(error);
-    const message=error?.message||'Registration failed.';
-    const status=/invalid|does not match|different|missing/i.test(message)?400:500;
+    const message=String(error?.message||'Registration failed.');
+    const status=/login|required|expired/i.test(message)?401:/invalid|does not match|different|missing/i.test(message)?400:503;
     return res.status(status).json({success:false,error:message});
   }
 }
