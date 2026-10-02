@@ -23,7 +23,7 @@
     const tokens=document.getElementById('tokensDirectoryPage');
     if(tokens)tokens.style.display='none';
     if(app)app.style.display='block';
-    document.title='SPLIT';
+    document.title='SPLIT | Group Payments & Launchpad';
   }
 
   function goHomeFromTokens(event){
