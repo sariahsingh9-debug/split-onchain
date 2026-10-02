@@ -1,17 +1,48 @@
 /* SPLIT mobile styles. */
 
+@media (max-width:900px){
+  .root nav{
+    display:grid!important;
+    grid-template-columns:auto minmax(0,1fr);
+    grid-template-rows:64px 44px;
+    height:108px!important;
+    padding:0 12px!important;
+    gap:0 10px!important;
+    width:100%!important;
+    max-width:100%!important;
+  }
+  .root nav>.brandV47{grid-column:1;grid-row:1}
+  .root nav>.navactions{grid-column:2;grid-row:1;justify-self:end}
+  .root .navlinks{
+    display:flex!important;
+    grid-column:1 / -1;
+    grid-row:2;
+    align-items:center;
+    justify-content:space-between;
+    gap:6px;
+    height:44px;
+    width:100%;
+    border-top:1px solid #202020;
+  }
+  .root .navlinks a{
+    display:inline-flex!important;
+    align-items:center;
+    justify-content:center;
+    min-width:44px;
+    min-height:44px;
+    padding:0 2px;
+    font-size:12px;
+    letter-spacing:0;
+    white-space:nowrap;
+  }
+  .root section{scroll-margin-top:124px}
+}
+
 @media (max-width:700px){
   html,body{width:100%;max-width:100%;overflow-x:hidden!important}
   .root{width:100%;max-width:100%;overflow-x:hidden!important}
   .root *{min-width:0}
   .root img,.root svg{max-width:100%}
-  .root nav{
-    height:64px!important;
-    padding:0 12px!important;
-    gap:10px!important;
-    width:100%!important;
-    max-width:100%!important;
-  }
   .root .brandV47{
     gap:7px!important;
     flex:0 0 auto!important;
@@ -22,7 +53,6 @@
   .root .brandV47 .splitBrandLogoV66{
     width:25px!important;height:25px!important;flex-basis:25px!important;
   }
-  .root .navlinks{display:none!important}
   .root .navactions{
     margin-left:auto!important;
     display:flex!important;
