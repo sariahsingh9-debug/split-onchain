@@ -240,7 +240,6 @@ background-size:42px 42px;mask-image:radial-gradient(circle at center,#000 28%,t
 radial-gradient(circle at 32% 26%,#fff 0%,#f0f0f0 10%,#a8a8a8 24%,#333 50%,#111 74%,#080808 100%);
 box-shadow:0 0 100px rgba(255,255,255,.09),inset -16px -20px 38px rgba(0,0,0,.55);font-size:23px;font-weight:950;letter-spacing:-.08em;color:#050505;z-index:6}
 .orbitCore:before{content:"";position:absolute;inset:-18px;border:1px solid rgba(255,255,255,.08);border-radius:50%;animation:corePulse 4.8s ease-in-out infinite}
-.orbitCore:after{content:"SETTLEMENT ROUTER";position:absolute;bottom:-48px;color:#999;font-size:12px;letter-spacing:.24em;font-weight:800;white-space:nowrap}
 @keyframes corePulse{0%,100%{transform:scale(.96);opacity:.28}50%{transform:scale(1.08);opacity:.75}}
 .networkNode{position:absolute;z-index:5;min-width:126px;padding:12px 14px;border-radius:18px;border:1px solid #2b2b2b;background:linear-gradient(180deg,rgba(18,18,18,.96),rgba(9,9,9,.96));box-shadow:0 18px 44px rgba(0,0,0,.36);backdrop-filter:blur(10px);animation:nodeFloat 6s ease-in-out infinite}
 .networkNode:nth-of-type(odd){animation-delay:-1.8s}
