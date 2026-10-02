@@ -532,10 +532,21 @@ body{scrollbar-color:#303030 #070707}
   background:#060606;
 }
 .root .tickerTrack{
+  gap:0;
   padding:13px 0;
   color:#999;
   font-size:12px;
   letter-spacing:.18em;
+}
+.root .tickerGroup{
+  display:flex;
+  flex-shrink:0;
+  align-items:center;
+  justify-content:space-around;
+  gap:32px;
+  min-width:100vw;
+  padding-inline:16px;
+  box-sizing:border-box;
 }
 .root section{
   padding-top:94px;
