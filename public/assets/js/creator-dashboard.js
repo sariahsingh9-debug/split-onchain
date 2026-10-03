@@ -167,6 +167,11 @@
       const actions=document.createElement('div');actions.className='cdRowButtonsV62';
       const chain=document.createElement('a');chain.className='btn';chain.target='_blank';chain.rel='noopener noreferrer';chain.textContent='On-chain';
       chain.href='https://solscan.io/token/'+encodeURIComponent(item.mintAddress)+(item.network==='solana-devnet'?'?cluster=devnet':'');
+      const boost=item.network==='solana-mainnet'?document.createElement('a'):null;
+      if(boost){
+        boost.className='btn';boost.target='_blank';boost.rel='noopener noreferrer';boost.textContent='DEX Boost';
+        boost.href='https://dexscreener.com/solana/'+encodeURIComponent(item.mintAddress);
+      }
       const claim=document.createElement('button');claim.type='button';claim.className='btn';claim.textContent='Claim fees';
       claim.onclick=async()=>{
         claim.disabled=true;const old=claim.textContent;claim.textContent='Checking…';
@@ -185,7 +190,7 @@
           d('cdSystemState').querySelector('span').textContent=error?.message||'Revenue distribution failed.';
         }finally{claim.disabled=false;if(claim.textContent==='Checking…')claim.textContent=old}
       };
-      actions.append(chain,claim);right.append(amount,state,actions);row.append(left,right);tokens.appendChild(row);
+      actions.append(chain);if(boost)actions.append(boost);actions.append(claim);right.append(amount,state,actions);row.append(left,right);tokens.appendChild(row);
     });
 
     const activity=d('cdActivityList');activity.innerHTML='';

@@ -765,6 +765,7 @@ function showLaunchResultV57(item){
   const mint=document.getElementById('launchResultMintV57');
   const network=document.getElementById('launchResultNetworkV57');
   const open=document.getElementById('openLaunchPageV57');
+  const boost=document.getElementById('boostDexScreenerV77');
   const claim=document.getElementById('claimRevenueV57');
   const status=document.getElementById('launchResultStatusV57');
   if(panel)panel.style.display='block';
@@ -775,10 +776,19 @@ function showLaunchResultV57(item){
     open.style.display=item.launchUrl?'inline-flex':'none';
     if(item.launchUrl)open.href=item.launchUrl;
   }
+  const dexEligible=launchServiceConfig?.network==='solana-mainnet';
+  if(boost){
+    boost.style.display=dexEligible?'inline-flex':'none';
+    if(dexEligible)boost.href='https://dexscreener.com/solana/'+encodeURIComponent(item.mintAddress);
+    else boost.removeAttribute('href');
+  }
   if(claim)claim.disabled=!item.routingToken;
-  if(status)status.textContent=item.routingToken
-    ? 'Creator revenue can be claimed and distributed according to this launch\'s routing rules.'
-    : 'Revenue routing is unavailable for this saved launch.';
+  if(status){
+    const routingStatus=item.routingToken
+      ? 'Creator revenue can be claimed and distributed according to this launch\'s routing rules.'
+      : 'Revenue routing is unavailable for this saved launch.';
+    status.textContent=routingStatus+(dexEligible?' DEX Screener boost payment opens on DEX Screener and is approved in your wallet.':'');
+  }
 }
 
 async function claimAndDistributeRevenueV57(){
